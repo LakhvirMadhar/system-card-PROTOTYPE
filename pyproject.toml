@@ -3,11 +3,13 @@ name = "system-card"
 version = "0.1.0"
 description = "Application system card for agentic systems — versioned, CI-diffed, and trace-tagged."
 
-requires-python = ">=3.12"
+requires-python = ">=3.12,<3.14"
 dependencies = [
     "pydantic (>=2.13.4,<3.0.0)",
     "pydantic-settings (>=2.14.1,<3.0.0)",
-    "structlog (>=25.5.0,<26.0.0)"
+    "structlog (>=25.5.0,<26.0.0)",
+    "google-adk (>=2.3.0,<3.0.0)",
+    "litellm (>=1.89.2,<2.0.0)"
 ]
 
 
