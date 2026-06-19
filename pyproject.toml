@@ -5,6 +5,7 @@ description = "Application system card for agentic systems — versioned, CI-dif
 
 requires-python = ">=3.12"
 dependencies = [
+    "pydantic (>=2.13.4,<3.0.0)",
     "pydantic-settings (>=2.14.1,<3.0.0)",
     "structlog (>=25.5.0,<26.0.0)"
 ]
@@ -139,6 +140,7 @@ forbidden_modules = [
     "system_card.services",
     "system_card.adapters",
     "system_card.tools",
+    "system_card.registry",
     "system_card.observability",
     "system_card.dependencies",
 ]
@@ -152,6 +154,7 @@ forbidden_modules = [
     "system_card.services",
     "system_card.adapters",
     "system_card.tools",
+    "system_card.registry",
     "system_card.observability",
     "system_card.dependencies",
 ]
@@ -164,6 +167,7 @@ forbidden_modules = [
     "system_card.services",
     "system_card.adapters",
     "system_card.tools",
+    "system_card.registry",
     "system_card.observability",
     "system_card.dependencies",
 ]
@@ -176,6 +180,20 @@ forbidden_modules = [
     "system_card.models",
     "system_card.services",
     "system_card.adapters",
+    "system_card.registry",
+    "system_card.observability",
+    "system_card.dependencies",
+]
+
+[[tool.importlinter.contracts]]
+name = "registry imports from core and schemas only"
+type = "forbidden"
+source_modules = ["system_card.registry"]
+forbidden_modules = [
+    "system_card.models",
+    "system_card.services",
+    "system_card.adapters",
+    "system_card.tools",
     "system_card.observability",
     "system_card.dependencies",
 ]
@@ -190,11 +208,12 @@ forbidden_modules = [
     "system_card.services",
     "system_card.adapters",
     "system_card.tools",
+    "system_card.registry",
     "system_card.dependencies",
 ]
 
 [[tool.importlinter.contracts]]
-name = "services imports from core, models, schemas, and tools only"
+name = "services imports from core, models, schemas, tools, and registry only"
 type = "forbidden"
 source_modules = ["system_card.services"]
 forbidden_modules = [
@@ -211,6 +230,7 @@ forbidden_modules = [
     "system_card.schemas",
     "system_card.services",
     "system_card.tools",
+    "system_card.registry",
     "system_card.observability",
     "system_card.dependencies",
 ]
