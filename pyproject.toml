@@ -1,0 +1,239 @@
+[project]
+name = "system-card"
+version = "0.1.0"
+description = "Application system card for agentic systems — versioned, CI-diffed, and trace-tagged."
+
+requires-python = ">=3.12"
+dependencies = [
+    "pydantic-settings (>=2.14.1,<3.0.0)",
+    "structlog (>=25.5.0,<26.0.0)"
+]
+
+
+[tool.poetry]
+packages = [{include = "system_card", from = "src"}]
+
+# ---------------------------------------------------------------------------
+# Ruff
+# ---------------------------------------------------------------------------
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors — real logic mistakes (== None, == True, etc.)
+    "F",   # pyflakes — unused imports, undefined names
+    "I",   # isort — import ordering
+    "N",   # pep8-naming — class PascalCase, function snake_case, etc.
+    "UP",  # pyupgrade — modernise syntax (list over List, X | None over Optional, etc.)
+    "TID", # flake8-tidy-imports — ban specific imports
+    "B",   # flake8-bugbear — real bugs: mutable defaults, lost tracebacks, useless expressions
+    "A",   # flake8-builtins — prevent shadowing Python builtins (id, type, list, etc.)
+    "T20", # flake8-print — ban print() in source code, use structlog
+    "T10", # flake8-debugger — ban debugger statements (breakpoint, pdb) in committed code
+    "S",   # flake8-bandit — security: hardcoded secrets, sql injection, insecure crypto
+    "SIM", # flake8-simplify — reduce unnecessary complexity
+    "G",   # flake8-logging-format — enforce structured logging, ban f-strings in log calls
+    "DTZ", # flake8-datetimez — ban naive datetimes, always require timezone info
+    "RET", # flake8-return — explicit return behaviour, no redundant else after return
+    "PTH", # flake8-use-pathlib — use pathlib.Path over os.path and string-based filesystem APIs
+    "D",   # pydocstyle — enforce docstring presence and formatting (Google convention)
+    # DOC skipped — requires preview = true which enables unstable rules across all sets
+    "PYI",   # flake8-pyi — modern typing patterns: Self, NamedTuple, type aliases, etc.
+    "ASYNC", # flake8-async — ban blocking calls (open, sleep, requests) inside async functions
+]
+
+ignore = [
+    # RET — false positives, buggy autofix, or conflicts with TRY300
+    "RET501", # unnecessary-return-none — explicit return None is harmless and clear
+    "RET504", # unnecessary-assign — buggy autofix breaks closures; false positives
+    "RET505", # superfluous-else-return — conflicts with TRY300; style preference
+    "RET506", # superfluous-else-raise — same conflict as RET505
+
+    # PYI — int | float is usually bad design, not a simple redundancy
+    "PYI041", # redundant-numeric-union — int is not float at runtime; use separate params instead
+
+    # SIM — contested rules, async edge cases, or autofix bugs
+    "SIM102", # collapsible-if — sometimes nested is intentional and clearer
+    "SIM105", # suppressible-exception — autofix has known bugs; S110 already catches except/pass
+    "SIM108", # if-else-block-instead-of-if-exp — Ruff's own docs call this opinionated
+    "SIM116", # if-else-block-instead-of-dict-lookup — if/elif is often more readable
+    "SIM117", # multiple-with-statements — changes semantics with async context managers
+
+    # S — framework-specific, obsolete protocols, or not applicable to generic Python
+    "S201", # flask-debug-true — Flask-specific
+    "S308", # suspicious-mark-safe-usage — Django-specific
+    "S311", # non-cryptographic random — random is fine for non-security use (shuffling, sampling)
+    "S312", # suspicious-telnet-usage — obsolete protocol
+    "S321", # suspicious-ftp-lib-usage — obsolete protocol
+    "S401", # suspicious-telnetlib-import — obsolete protocol
+    "S402", # suspicious-ftplib-import — obsolete protocol
+    "S415", # suspicious-pyghmi-import — IPMI hardware library, not generic
+    "S508", # snmp-insecure-version — SNMP-specific
+    "S509", # snmp-weak-cryptography — SNMP-specific
+    "S601", # paramiko-call — Paramiko-specific
+    "S603", # subprocess-without-shell — every legitimate subprocess call triggers this
+    "S607", # start-process-with-partial-path — too noisy for general use
+    "S610", # django-extra — Django-specific
+    "S611", # django-raw-sql — Django-specific
+    "S701", # jinja2-autoescape-false — Jinja2-specific
+    "S702", # mako-templates — Mako-specific
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = [
+    "S101", # assert is how pytest works — only ban it in production code
+    "D",    # test function names are self-documenting — test_get_node_raises_when_not_found needs no docstring
+    "DOC",  # test functions don't need Args/Returns/Raises sections — pytest reads assertions, not docstrings
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.isort]
+force-wrap-aliases = true
+split-on-trailing-comma = true
+
+[tool.ruff.lint.flake8-tidy-imports]
+# Use core/http_status.py instead — framework-independent, same naming convention.
+# Banning these prevents accidental use of plain int constants over our typed status namespace.
+banned-module-level-imports = [
+    "fastapi.status",
+    "starlette.status",
+]
+
+# ---------------------------------------------------------------------------
+# Mypy
+# ---------------------------------------------------------------------------
+[tool.mypy]
+python_version = "3.12"
+strict = true
+
+# ---------------------------------------------------------------------------
+# Poethepoet tasks
+# ---------------------------------------------------------------------------
+[tool.poe.tasks]
+lint      = "ruff check src tests"
+format    = "ruff format src tests"
+typecheck = "mypy src"
+test      = "pytest tests"
+arch      = "lint-imports"
+
+[tool.poe.tasks.check]
+sequence = ["lint", "typecheck", "arch", "test"]
+
+# ---------------------------------------------------------------------------
+# import-linter — architectural layer boundary enforcement
+# ---------------------------------------------------------------------------
+[tool.importlinter]
+root_packages = ["system_card"]
+
+[[tool.importlinter.contracts]]
+name = "core imports nothing from this project"
+type = "forbidden"
+source_modules = ["system_card.core"]
+forbidden_modules = [
+    "system_card.models",
+    "system_card.schemas",
+    "system_card.services",
+    "system_card.adapters",
+    "system_card.tools",
+    "system_card.observability",
+    "system_card.dependencies",
+]
+
+[[tool.importlinter.contracts]]
+name = "models imports from core only"
+type = "forbidden"
+source_modules = ["system_card.models"]
+forbidden_modules = [
+    "system_card.schemas",
+    "system_card.services",
+    "system_card.adapters",
+    "system_card.tools",
+    "system_card.observability",
+    "system_card.dependencies",
+]
+
+[[tool.importlinter.contracts]]
+name = "schemas imports from core and models only"
+type = "forbidden"
+source_modules = ["system_card.schemas"]
+forbidden_modules = [
+    "system_card.services",
+    "system_card.adapters",
+    "system_card.tools",
+    "system_card.observability",
+    "system_card.dependencies",
+]
+
+[[tool.importlinter.contracts]]
+name = "tools imports from core and schemas only"
+type = "forbidden"
+source_modules = ["system_card.tools"]
+forbidden_modules = [
+    "system_card.models",
+    "system_card.services",
+    "system_card.adapters",
+    "system_card.observability",
+    "system_card.dependencies",
+]
+
+[[tool.importlinter.contracts]]
+name = "observability imports from core only"
+type = "forbidden"
+source_modules = ["system_card.observability"]
+forbidden_modules = [
+    "system_card.models",
+    "system_card.schemas",
+    "system_card.services",
+    "system_card.adapters",
+    "system_card.tools",
+    "system_card.dependencies",
+]
+
+[[tool.importlinter.contracts]]
+name = "services imports from core, models, schemas, and tools only"
+type = "forbidden"
+source_modules = ["system_card.services"]
+forbidden_modules = [
+    "system_card.adapters",
+    "system_card.observability",
+    "system_card.dependencies",
+]
+
+[[tool.importlinter.contracts]]
+name = "adapters imports from core and models only"
+type = "forbidden"
+source_modules = ["system_card.adapters"]
+forbidden_modules = [
+    "system_card.schemas",
+    "system_card.services",
+    "system_card.tools",
+    "system_card.observability",
+    "system_card.dependencies",
+]
+
+# ---------------------------------------------------------------------------
+# Pytest
+# ---------------------------------------------------------------------------
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q --tb=short"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "ruff (>=0.15.15,<0.16.0)",
+    "mypy (>=2.1.0,<3.0.0)",
+    "poethepoet (>=0.46.0,<0.47.0)",
+    "pytest (>=9.0.3,<10.0.0)",
+    "pytest-cov (>=7.1.0,<8.0.0)",
+    "pydeps (>=3.0.6,<4.0.0)",
+    "import-linter (>=2.11,<3.0)",
+    "pre-commit (>=4.6.0,<5.0.0)"
+]
