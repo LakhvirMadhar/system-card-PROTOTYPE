@@ -29,11 +29,12 @@ core/          → (nothing in this project)
 models/        → core/                                  (placeholder — reserved for system card domain entities)
 schemas/       → core/, models/
 tools/         → core/, schemas/
+registry/      → core/, schemas/                         (registers tools by dotted path; never statically imports tools/)
 observability/ → core/
-services/      → core/, models/, schemas/, tools/
+services/      → core/, models/, schemas/, tools/, registry/
 adapters/      → core/, models/
 dependencies/  → everything                              (composition root — wires services, adapters, observability together)
-scripts/       → everything                              (CLI entrypoints, e.g. compute_registry_hash.py)
+scripts/       → everything                              (CLI entrypoints, e.g. compute_system_card_hash.py)
 ```
 
 `import-linter` enforces all of the above except `dependencies/` and `scripts/`, which are intentionally unconstrained composition/entrypoint layers. It runs on every `poe check`.
@@ -53,14 +54,15 @@ Unit tests test domain and application logic with in-memory adapters. Integratio
 ## File Structure
 
 ```
-src/agent_versioning/
+src/system_card/
   __init__.py
-  __main__.py           # entry point: python -m agent_versioning
+  __main__.py           # entry point: python -m system_card
   core/                  # framework-agnostic shared utilities — importable by all layers
     config.py            # Pydantic Settings, reads from .env
   models/                # placeholder — reserved for system card domain entities
-  schemas/               # Pydantic schemas — system card shape (tools, prompt, model config), agent I/O contracts
-  tools/                 # the toy tools: calculator, dad_joke, shakespearify, etc.
+  schemas/               # Pydantic schemas — tool_manifest.py, system card shape, agent I/O contracts
+  tools/                 # the toy tools: calculator, dad_joke, shakespearify, coin_flip, word_count
+  registry/              # ToolEntry (lazy-loading handle) + ToolRegistry (thread-safe, register/get/list_tools)
   services/              # system_card_service (hash), system_card_diff_service, agent_service
   observability/         # custom OTel span processor — adds agent.* attributes pre-export
   adapters/              # concrete implementations of any storage/external-system interfaces
@@ -68,7 +70,7 @@ src/agent_versioning/
   scripts/               # CLI entrypoints, e.g. compute_system_card_hash.py (used by CI)
 
 tests/
-  unit/                  # services/ + tools/ only, no infrastructure
+  unit/                  # services/ + tools/ + registry/ only, no infrastructure
   integration/           # real agent runs, real telemetry export
 
 docs/
