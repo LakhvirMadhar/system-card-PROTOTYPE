@@ -90,6 +90,10 @@ ignore = [
     "D",    # test function names are self-documenting — test_get_node_raises_when_not_found needs no docstring
     "DOC",  # test functions don't need Args/Returns/Raises sections — pytest reads assertions, not docstrings
 ]
+"src/system_card/scripts/print_system_card.py" = [
+    "T20", # this script's stdout *is* its product (raw JSON for CI to consume) — structlog's
+           # key=value wrapping would corrupt that output, so plain print() is correct here
+]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
