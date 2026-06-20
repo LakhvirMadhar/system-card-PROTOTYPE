@@ -9,6 +9,7 @@ _DEFAULT_TOOLS: tuple[tuple[str, str, str], ...] = (
     ("shakespearify", "system_card.tools.shakespearify", "shakespearify"),
     ("coin_flip", "system_card.tools.coin_flip", "coin_flip"),
     ("word_count", "system_card.tools.word_count", "word_count"),
+    ("ollama_list", "system_card.tools.ollama_list", "ollama_list"),
 )
 
 
