@@ -7,23 +7,31 @@ import sys
 import structlog
 
 from system_card.adapters.ollama_digest import verify_model_digest
+from system_card.agents import system_card_agent
 from system_card.core.config import Settings
+from system_card.registry.agent_registry import AgentRegistry
+from system_card.registry.default_agents import register_default_agents
+from system_card.registry.default_tools import register_default_tools
+from system_card.registry.tool_registry import ToolRegistry
 from system_card.schemas.model_config import ModelConfig, ModelProvider
-from system_card.services.agent_service import AgentService, build_agent
+from system_card.services.agent_service import AgentService, build_agent_from_spec
 
 logger = structlog.get_logger(__name__)
-
-PINNED_MODEL_TAG = "gemma4:latest"
-PINNED_MODEL_DIGEST = "c6eb396dbd5992bbe3f5cdb947e8bbc0ee413d7c17e2beaae69f5d569cf982eb"
 
 
 async def _main(message: str) -> None:
     settings = Settings()
+
+    tool_registry = ToolRegistry()
+    register_default_tools(tool_registry)
+
     model = ModelConfig(
         provider=ModelProvider.OLLAMA,
-        model_name=PINNED_MODEL_TAG,
+        model_name=system_card_agent.PINNED_MODEL_TAG,
         model_digest=verify_model_digest(
-            PINNED_MODEL_TAG, settings.ollama_api_base, PINNED_MODEL_DIGEST
+            system_card_agent.PINNED_MODEL_TAG,
+            settings.ollama_api_base,
+            system_card_agent.PINNED_MODEL_DIGEST,
         ),
         temperature=0.7,
         top_p=1.0,
@@ -35,7 +43,12 @@ async def _main(message: str) -> None:
         max_output_tokens=None,
     )
 
-    agent = build_agent(model, settings.ollama_api_base)
+    agent_registry = AgentRegistry()
+    register_default_agents(agent_registry, model)
+
+    agent = build_agent_from_spec(
+        agent_registry.get(system_card_agent.NAME), tool_registry, settings.ollama_api_base
+    )
     service = AgentService(agent)
 
     reply = await service.run(message)

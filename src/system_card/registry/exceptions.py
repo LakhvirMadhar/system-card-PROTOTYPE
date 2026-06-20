@@ -7,3 +7,11 @@ class ToolNotFoundError(Exception):
 
 class DuplicateToolError(Exception):
     """Raised when a tool name is registered more than once."""
+
+
+class AgentNotFoundError(Exception):
+    """Raised when a requested agent has no registered spec."""
+
+
+class DuplicateAgentError(Exception):
+    """Raised when an agent name is registered more than once."""
