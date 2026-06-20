@@ -35,7 +35,14 @@ def test_build_system_card_includes_every_registered_tool() -> None:
 
     names = [tool.name for tool in card.tools]
     assert names == sorted(names)
-    assert set(names) == {"calculator", "dad_joke", "shakespearify", "coin_flip", "word_count"}
+    assert set(names) == {
+        "calculator",
+        "dad_joke",
+        "shakespearify",
+        "coin_flip",
+        "word_count",
+        "ollama_list",
+    }
 
 
 def test_build_system_card_includes_the_model_surface() -> None:
