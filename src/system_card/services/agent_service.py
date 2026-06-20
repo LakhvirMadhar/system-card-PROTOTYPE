@@ -12,18 +12,22 @@ from google.adk.tools.base_tool import BaseTool
 from google.adk.tools.base_toolset import BaseToolset
 from google.genai import types
 
-from system_card.registry.default_tools import register_default_tools
 from system_card.registry.tool_registry import ToolRegistry
-from system_card.schemas.model_config import ModelConfig
+from system_card.schemas.agent_spec import AgentSpec
+
+ToolFunction = Callable[..., Any] | BaseTool | BaseToolset
 
 
-def build_agent(model: ModelConfig, ollama_api_base: str) -> LlmAgent:
-    """Builds an LlmAgent wired to every tool in a freshly populated registry.
+def build_agent_from_spec(
+    spec: AgentSpec, tool_registry: ToolRegistry, ollama_api_base: str
+) -> LlmAgent:
+    """Builds an LlmAgent from a registered agent spec, resolving its tools by name.
 
     Args:
-        model: The model and generation hyperparameters this agent should run
-            with. Construct a separate ModelConfig per agent if different
-            agents need different models — nothing here is shared global state.
+        spec: The agent's name, instruction, model, and equipped tool names.
+        tool_registry: Registry to resolve spec.tool_names against. Construct
+            a separate ModelConfig per spec if different agents need
+            different models — nothing here is shared global state.
         ollama_api_base: Where the local Ollama server is reachable.
 
     Returns:
@@ -31,12 +35,11 @@ def build_agent(model: ModelConfig, ollama_api_base: str) -> LlmAgent:
     """
     os.environ["OLLAMA_API_BASE"] = ollama_api_base
 
-    registry = ToolRegistry()
-    register_default_tools(registry)
-    tool_functions: list[Callable[..., Any] | BaseTool | BaseToolset] = [
-        entry.load() for entry in registry.entries()
+    tool_functions: list[ToolFunction] = [
+        tool_registry.get(name).load() for name in spec.tool_names
     ]
 
+    model = spec.model
     generation_config = types.GenerateContentConfig(
         temperature=model.temperature,
         top_p=model.top_p,
@@ -49,10 +52,10 @@ def build_agent(model: ModelConfig, ollama_api_base: str) -> LlmAgent:
     )
 
     return LlmAgent(
-        name="system_card_agent",
+        name=spec.name,
         description="A small agent exposing a handful of toy tools.",
         model=LiteLlm(model=f"ollama_chat/{model.model_name}"),
-        instruction="Use the available tools to answer the user's request.",
+        instruction=spec.instruction,
         tools=tool_functions,
         generate_content_config=generation_config,
     )

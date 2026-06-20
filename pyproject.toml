@@ -147,6 +147,7 @@ forbidden_modules = [
     "system_card.services",
     "system_card.adapters",
     "system_card.tools",
+    "system_card.agents",
     "system_card.registry",
     "system_card.observability",
     "system_card.dependencies",
@@ -161,6 +162,7 @@ forbidden_modules = [
     "system_card.services",
     "system_card.adapters",
     "system_card.tools",
+    "system_card.agents",
     "system_card.registry",
     "system_card.observability",
     "system_card.dependencies",
@@ -174,6 +176,7 @@ forbidden_modules = [
     "system_card.services",
     "system_card.adapters",
     "system_card.tools",
+    "system_card.agents",
     "system_card.registry",
     "system_card.observability",
     "system_card.dependencies",
@@ -187,13 +190,28 @@ forbidden_modules = [
     "system_card.models",
     "system_card.services",
     "system_card.adapters",
+    "system_card.agents",
     "system_card.registry",
     "system_card.observability",
     "system_card.dependencies",
 ]
 
 [[tool.importlinter.contracts]]
-name = "registry imports from core and schemas only"
+name = "agents imports from core and schemas only"
+type = "forbidden"
+source_modules = ["system_card.agents"]
+forbidden_modules = [
+    "system_card.models",
+    "system_card.services",
+    "system_card.adapters",
+    "system_card.tools",
+    "system_card.registry",
+    "system_card.observability",
+    "system_card.dependencies",
+]
+
+[[tool.importlinter.contracts]]
+name = "registry imports from core, schemas, and agents only"
 type = "forbidden"
 source_modules = ["system_card.registry"]
 forbidden_modules = [
@@ -215,12 +233,13 @@ forbidden_modules = [
     "system_card.services",
     "system_card.adapters",
     "system_card.tools",
+    "system_card.agents",
     "system_card.registry",
     "system_card.dependencies",
 ]
 
 [[tool.importlinter.contracts]]
-name = "services imports from core, models, schemas, tools, and registry only"
+name = "services imports from core, models, schemas, tools, agents, and registry only"
 type = "forbidden"
 source_modules = ["system_card.services"]
 forbidden_modules = [
@@ -237,6 +256,7 @@ forbidden_modules = [
     "system_card.schemas",
     "system_card.services",
     "system_card.tools",
+    "system_card.agents",
     "system_card.registry",
     "system_card.observability",
     "system_card.dependencies",
