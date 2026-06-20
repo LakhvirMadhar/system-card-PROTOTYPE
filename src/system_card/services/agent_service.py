@@ -40,6 +40,11 @@ def build_agent(model: ModelConfig, ollama_api_base: str) -> LlmAgent:
     generation_config = types.GenerateContentConfig(
         temperature=model.temperature,
         top_p=model.top_p,
+        top_k=model.top_k,
+        seed=model.seed,
+        presence_penalty=model.presence_penalty,
+        frequency_penalty=model.frequency_penalty,
+        stop_sequences=list(model.stop_sequences) if model.stop_sequences is not None else None,
         max_output_tokens=model.max_output_tokens,
     )
 

@@ -3,7 +3,7 @@
 from system_card.registry.default_tools import register_default_tools
 from system_card.registry.tool_entry import ToolEntry
 from system_card.registry.tool_registry import ToolRegistry
-from system_card.schemas.model_config import ModelConfig
+from system_card.schemas.model_config import ModelConfig, ModelProvider
 from system_card.services.system_card_service import build_system_card, hash_system_card
 
 
@@ -16,11 +16,16 @@ def _populated_registry() -> ToolRegistry:
 
 def _model(temperature: float = 0.7, model_digest: str = "abc123") -> ModelConfig:
     return ModelConfig(
-        provider="ollama",
+        provider=ModelProvider.OLLAMA,
         model_name="gemma4:latest",
         model_digest=model_digest,
         temperature=temperature,
         top_p=1.0,
+        top_k=64,
+        seed=None,
+        presence_penalty=None,
+        frequency_penalty=None,
+        stop_sequences=None,
         max_output_tokens=None,
     )
 
@@ -79,3 +84,14 @@ def test_hash_changes_when_the_model_digest_changes_even_if_the_tag_does_not() -
     card_after = build_system_card(_populated_registry(), _model(model_digest="def456"))
 
     assert hash_system_card(card_before) != hash_system_card(card_after)
+
+
+def test_hash_changes_when_seed_changes() -> None:
+    registry = _populated_registry()
+    model_without_seed = _model()
+    model_with_seed = model_without_seed.model_copy(update={"seed": 42})
+
+    before = hash_system_card(build_system_card(registry, model_without_seed))
+    after = hash_system_card(build_system_card(registry, model_with_seed))
+
+    assert before != after
