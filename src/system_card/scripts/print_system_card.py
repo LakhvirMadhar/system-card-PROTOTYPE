@@ -1,4 +1,4 @@
-"""CLI: builds the system card from the registered tools and model, prints it with its hash."""
+"""CLI: builds the system card from the registered agents and tools, prints it with its hash."""
 
 import io
 import sys
@@ -6,6 +6,8 @@ import sys
 from system_card.adapters.ollama_digest import verify_model_digest
 from system_card.agents import system_card_agent
 from system_card.core.config import Settings
+from system_card.registry.agent_registry import AgentRegistry
+from system_card.registry.default_agents import register_default_agents
 from system_card.registry.default_tools import register_default_tools
 from system_card.registry.tool_registry import ToolRegistry
 from system_card.schemas.model_config import ModelConfig, ModelProvider
@@ -15,8 +17,8 @@ from system_card.services.system_card_service import build_system_card, hash_sys
 def _main() -> None:
     settings = Settings()
 
-    registry = ToolRegistry()
-    register_default_tools(registry)
+    tool_registry = ToolRegistry()
+    register_default_tools(tool_registry)
 
     model = ModelConfig(
         provider=ModelProvider.OLLAMA,
@@ -36,7 +38,10 @@ def _main() -> None:
         max_output_tokens=None,
     )
 
-    card = build_system_card(registry, model)
+    agent_registry = AgentRegistry()
+    register_default_agents(agent_registry, model)
+
+    card = build_system_card(agent_registry, tool_registry)
     card_hash = hash_system_card(card)
 
     print(card.model_dump_json(indent=2))
