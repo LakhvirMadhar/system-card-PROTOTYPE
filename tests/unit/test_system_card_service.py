@@ -14,10 +14,11 @@ def _populated_registry() -> ToolRegistry:
     return registry
 
 
-def _model(temperature: float = 0.7) -> ModelConfig:
+def _model(temperature: float = 0.7, model_digest: str = "abc123") -> ModelConfig:
     return ModelConfig(
         provider="ollama",
         model_name="gemma4:latest",
+        model_digest=model_digest,
         temperature=temperature,
         top_p=1.0,
         max_output_tokens=None,
@@ -71,3 +72,10 @@ def test_hash_changes_when_a_hyperparameter_changes() -> None:
     after = hash_system_card(build_system_card(_populated_registry(), _model(temperature=0.2)))
 
     assert before != after
+
+
+def test_hash_changes_when_the_model_digest_changes_even_if_the_tag_does_not() -> None:
+    card_before = build_system_card(_populated_registry(), _model(model_digest="abc123"))
+    card_after = build_system_card(_populated_registry(), _model(model_digest="def456"))
+
+    assert hash_system_card(card_before) != hash_system_card(card_after)

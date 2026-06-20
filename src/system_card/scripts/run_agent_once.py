@@ -6,18 +6,25 @@ import sys
 
 import structlog
 
+from system_card.adapters.ollama_digest import verify_model_digest
 from system_card.core.config import Settings
 from system_card.schemas.model_config import ModelConfig
 from system_card.services.agent_service import AgentService, build_agent
 
 logger = structlog.get_logger(__name__)
 
+PINNED_MODEL_TAG = "gemma4:latest"
+PINNED_MODEL_DIGEST = "c6eb396dbd5992bbe3f5cdb947e8bbc0ee413d7c17e2beaae69f5d569cf982eb"
+
 
 async def _main(message: str) -> None:
     settings = Settings()
     model = ModelConfig(
         provider="ollama",
-        model_name="gemma4:latest",
+        model_name=PINNED_MODEL_TAG,
+        model_digest=verify_model_digest(
+            PINNED_MODEL_TAG, settings.ollama_api_base, PINNED_MODEL_DIGEST
+        ),
         temperature=0.7,
         top_p=1.0,
         max_output_tokens=None,
