@@ -1,9 +1,9 @@
-"""CLI: builds the real system card and writes it as a JS data file for viewer/index.html.
+"""CLI: builds the real system card and writes it as JSON for viewer/index.html.
 
-The viewer is a static page with no server and no build step, so it can't
-fetch JSON over `file://` (browsers block that). Writing the card as a
-`<script>`-loadable JS assignment sidesteps that entirely — `index.html` just
-includes this generated file before its own script.
+viewer/script.js loads this via fetch(). That only fails under file://
+(browsers block fetch() against local files); serving viewer/ through any
+HTTP server — a local one during development, or GitHub Pages once
+deployed — works with no special-casing.
 """
 
 import io
@@ -26,7 +26,7 @@ from system_card.services.system_card_service import build_system_card, hash_sys
 
 logger = structlog.get_logger(__name__)
 
-DEFAULT_OUTPUT_PATH = Path("viewer/system_card_data.js")
+DEFAULT_OUTPUT_PATH = Path("viewer/system_card_data.json")
 
 
 def _main(output_path: Path) -> None:
@@ -75,10 +75,7 @@ def _main(output_path: Path) -> None:
     }
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(
-        f"const SYSTEM_CARD_DATA = {json.dumps(payload, indent=2)};\n",
-        encoding="utf-8",
-    )
+    output_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
     logger.info("card_viewer_data.written", output_path=str(output_path), card_hash=card_hash)
 

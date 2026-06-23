@@ -14,7 +14,7 @@ docs/
 .adk/
 
 # Generated viewer data — produced by generate_card_viewer_data.py, not hand-written
-viewer/system_card_data.js
+viewer/system_card_data.json
 
 # IDEs
 .vscode/
