@@ -123,14 +123,16 @@ strict = true
 # Poethepoet tasks
 # ---------------------------------------------------------------------------
 [tool.poe.tasks]
-lint      = "ruff check src tests"
-format    = "ruff format src tests"
-typecheck = "mypy src"
-test      = "pytest tests"
-arch      = "lint-imports"
+lint             = "ruff check src tests"
+format           = "ruff format src tests"
+typecheck        = "mypy src"
+test             = "pytest tests"
+test-unit        = "pytest tests/unit"
+test-integration = "pytest tests/integration"
+arch             = "lint-imports"
 
 [tool.poe.tasks.check]
-sequence = ["lint", "typecheck", "arch", "test"]
+sequence = ["lint", "typecheck", "arch", "test-unit"]
 
 # ---------------------------------------------------------------------------
 # import-linter — architectural layer boundary enforcement
