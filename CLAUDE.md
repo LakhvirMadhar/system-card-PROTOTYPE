@@ -150,7 +150,7 @@ Active rule sets: `E`, `F`, `I`, `N`, `UP`, `TID`, `B`, `A`, `T20`, `T10`, `S`, 
 ## What Not To Do
 
 - Do not build a "real" complex tool (PDF parsing, etc.) — tools must stay trivial; the system-card/CI/observability machinery is the point
-- Do not build a custom frontend — Phoenix replaces this; no `adk web`
+- Do not build a custom frontend for the system card itself (no bespoke trace viewer UI) — `adk web` is fine for ad hoc agent interaction/debugging, it's unrelated to the system-card thesis
 - Do not use SQLite — PostgreSQL if persistence beyond Phoenix is needed
 - Do not invent domain entities for `models/` unrelated to the system card until that work starts
 - Do not write infrastructure code in `core/`
