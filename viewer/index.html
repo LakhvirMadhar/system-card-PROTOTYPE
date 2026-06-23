@@ -17,6 +17,13 @@
 
     <main class="wrap">
 
+      <p class="empty-state" id="data-load-error" hidden>
+        Could not load <code>system_card_data.json</code>. This page must be served over HTTP —
+        opening it directly (<code>file://</code>) blocks the fetch. Run a local static server
+        (e.g. <code>python -m http.server</code> from the <code>viewer/</code> directory) and open
+        it from there, or visit the deployed GitHub Pages URL instead.
+      </p>
+
       <section id="view-home">
         <p class="eyebrow">Agent Card · Auto-generated</p>
         <h1>System Card — Capability Ledger</h1>
@@ -167,7 +174,6 @@
 
     </main>
 
-    <script src="system_card_data.js"></script>
     <script src="script.js"></script>
   </body>
 </html>

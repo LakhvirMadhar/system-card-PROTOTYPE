@@ -1,3 +1,5 @@
+let SYSTEM_CARD_DATA = null;
+
 // --- Theme toggle -----------------------------------------------------------
 
 const THEME_STORAGE_KEY = 'system-card-theme';
@@ -348,6 +350,17 @@ document.querySelectorAll('.section-nav button').forEach((btn) => {
   });
 });
 
-populateToolAgentFilter();
-renderToolRegistry();
-renderAgentList();
+fetch('system_card_data.json')
+  .then((response) => {
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return response.json();
+  })
+  .then((data) => {
+    SYSTEM_CARD_DATA = data;
+    populateToolAgentFilter();
+    renderToolRegistry();
+    renderAgentList();
+  })
+  .catch(() => {
+    document.getElementById('data-load-error').hidden = false;
+  });
