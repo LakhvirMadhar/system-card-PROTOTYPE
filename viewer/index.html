@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>Agent Card — Capability Ledger</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+
+    <nav class="agent-bar" id="top-nav" aria-label="Primary">
+      <span class="agent-bar-brand">System Card</span>
+      <button class="agent-tab active" id="nav-home" data-view="home">Home</button>
+      <button class="agent-tab" id="nav-tools" data-view="tools">Tools</button>
+      <button class="agent-tab" id="nav-agents" data-view="agents">Agents</button>
+      <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Toggle dark mode"></button>
+    </nav>
+
+    <main class="wrap">
+
+      <section id="view-home">
+        <p class="eyebrow">Agent Card · Auto-generated</p>
+        <h1>System Card — Capability Ledger</h1>
+        <p class="subtitle">
+          A capability ledger generated directly from this project's tool registry and model
+          configuration — not hand-written.
+        </p>
+
+        <article class="explainer">
+          <h2>What this is</h2>
+          <p>
+            An agent's actual behavior is shaped by more than the model: its tool definitions,
+            system instructions, and model/generation parameters all matter just as much. None of
+            that surface normally gets versioned, diffed, or reviewed with the rigor applied to
+            code — it just drifts. This page is a generated snapshot of that surface, exactly as
+            it exists in the code right now.
+          </p>
+        </article>
+
+        <article class="explainer">
+          <h2>Why it matters</h2>
+          <p>
+            Sculley et al.'s <em>"Hidden Technical Debt in Machine Learning Systems"</em>
+            (NeurIPS 2015) names <strong>configuration debt</strong> (config isn't versioned or
+            reviewed like code) and <strong>entanglement / CACE</strong> ("Changing Anything
+            Changes Everything" — no input is truly independent) as debt categories specific to ML
+            systems. The same categories reappear in agentic LLM systems, except now the
+            "configuration" is tool definitions, prompts, and model parameters. A real-world
+            example: a published contact-center agent case study fixed three production issues by
+            editing exactly this surface — adding a tool, injecting a guardrail prompt segment —
+            with no recorded way to know afterward which configuration produced which customer
+            interaction.
+          </p>
+        </article>
+
+        <article class="explainer">
+          <h2>Everything that goes into an agent must be tracked</h2>
+          <p>
+            That's why <strong>Tools</strong> is its own top-level view, not something buried
+            inside each agent's page: a tool can be registered — and therefore part of the
+            system's behavior surface — whether or not any agent currently uses it. If it isn't
+            tracked as a first-class thing on its own, you can't reason about it. <strong>Agents</strong>
+            is where you see how a given agent resolves that shared registry into the specific
+            tools, instruction, and model it actually runs with.
+          </p>
+        </article>
+      </section>
+
+      <section id="view-tools" hidden>
+        <header>
+          <p class="eyebrow">Agent Card · Auto-generated</p>
+          <h1>Tool Registry</h1>
+          <p class="subtitle">
+            This is what your agent sees: every tool registered in this system, with the exact
+            name, description, and signature the model reads — independent of which agent (if
+            any) currently uses it.
+          </p>
+        </header>
+
+        <div class="toolbar">
+          <label class="toolbar-control">
+            Sort by
+            <select id="tool-sort">
+              <option value="name">Name</option>
+              <option value="used-by-count">Used By (count)</option>
+            </select>
+          </label>
+          <label class="toolbar-control">
+            Filter by agent
+            <select id="tool-agent-filter">
+              <option value="">All agents</option>
+            </select>
+          </label>
+        </div>
+
+        <div id="tool-registry-list"></div>
+      </section>
+
+      <section id="view-agents" hidden>
+        <header>
+          <p class="eyebrow">Agent Card · Auto-generated</p>
+          <h1>Agents</h1>
+          <p class="subtitle">
+            Each agent resolves the shared tool registry into the specific tools, instruction, and
+            model it actually runs with.
+          </p>
+        </header>
+        <div class="home-agent-list" id="agent-list"></div>
+      </section>
+
+      <section id="view-agent-detail" hidden>
+
+        <header>
+          <button class="back-link" id="back-to-agents" type="button">&larr; Back to agents</button>
+          <p class="eyebrow">Agent Card · Auto-generated</p>
+          <h1 id="agent-title"></h1>
+          <dl class="meta-row" id="meta-row"></dl>
+        </header>
+
+        <nav class="section-nav" aria-label="Card sections">
+          <button class="active" data-panel="overview">Overview</button>
+          <button data-panel="model">Model Params</button>
+          <button data-panel="instruction">Instruction</button>
+          <button data-panel="versions">Versions</button>
+        </nav>
+
+        <section class="panel active" id="panel-overview">
+          <header class="section-head">
+            <h2>Capabilities at a Glance</h2>
+            <p class="section-note">tools this agent is equipped with — see the Tools tab for full detail</p>
+          </header>
+          <div class="tool-list" id="tool-list"></div>
+        </section>
+
+        <section class="panel" id="panel-model">
+          <header class="section-head">
+            <h2>Underlying Model Configuration</h2>
+            <p class="section-note">part of the system's capability surface, tracked the same way</p>
+          </header>
+          <dl class="detail-list" id="model-params"></dl>
+        </section>
+
+        <section class="panel" id="panel-instruction">
+          <header class="section-head">
+            <h2>System Instruction</h2>
+            <p class="section-note">the full system prompt this agent runs with</p>
+          </header>
+          <pre class="instruction-block" id="instruction-block"></pre>
+        </section>
+
+        <section class="panel" id="panel-versions">
+          <header class="section-head">
+            <h2>Version History</h2>
+            <p class="section-note">derived from CI registry diffs, not manually logged</p>
+          </header>
+          <p class="empty-state">
+            No version history yet — this populates once Build Order step 4
+            (CI-based system card versioning) is built.
+          </p>
+        </section>
+
+      </section>
+
+      <footer class="footnote">
+        This card reflects the system's own declared capabilities as of generation time.
+        It has no production telemetry attached yet.
+      </footer>
+
+    </main>
+
+    <script src="system_card_data.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>
