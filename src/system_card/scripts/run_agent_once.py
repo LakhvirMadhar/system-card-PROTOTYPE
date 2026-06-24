@@ -52,9 +52,9 @@ async def _main(message: str, agent_name: str) -> None:
     register_default_agents(agent_registry, model)
 
     spec = agent_registry.get(agent_name)
-    agent = build_agent_from_spec(spec, tool_registry, settings.ollama_api_base)
     guardrails = [guardrail_registry.get(name) for name in spec.guardrail_names]
-    service = AgentService(agent, guardrails)
+    agent = build_agent_from_spec(spec, tool_registry, settings.ollama_api_base, guardrails)
+    service = AgentService(agent)
 
     reply = await service.run(message)
 
