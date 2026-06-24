@@ -15,16 +15,8 @@ from pathlib import Path
 
 import structlog
 
-from system_card.adapters.ollama_digest import verify_model_digest
-from system_card.agents import system_card_agent
 from system_card.core.config import Settings
-from system_card.registry.agent_registry import AgentRegistry
-from system_card.registry.default_agents import register_default_agents
-from system_card.registry.default_guardrails import register_default_guardrails
-from system_card.registry.default_tools import register_default_tools
-from system_card.registry.guardrail_registry import GuardrailRegistry
-from system_card.registry.tool_registry import ToolRegistry
-from system_card.schemas.model_config import ModelConfig, ModelProvider
+from system_card.dependencies.registries import build_pinned_model, build_registries
 from system_card.schemas.system_card import SystemCard
 from system_card.services.system_card_diff_service import diff_system_cards, format_diff
 from system_card.services.system_card_service import build_system_card, hash_system_card
@@ -82,40 +74,15 @@ def _build_version_history(versions_dir: Path) -> list[dict[str, object]]:
 
 def _main(output_path: Path) -> None:
     settings = Settings()
+    model = build_pinned_model(settings)
+    registries = build_registries(model)
 
-    tool_registry = ToolRegistry()
-    register_default_tools(tool_registry)
-
-    guardrail_registry = GuardrailRegistry()
-    register_default_guardrails(guardrail_registry)
-
-    model = ModelConfig(
-        provider=ModelProvider.OLLAMA,
-        model_name=system_card_agent.PINNED_MODEL_TAG,
-        model_digest=verify_model_digest(
-            system_card_agent.PINNED_MODEL_TAG,
-            settings.ollama_api_base,
-            system_card_agent.PINNED_MODEL_DIGEST,
-        ),
-        temperature=0.7,
-        top_p=1.0,
-        top_k=64,
-        seed=None,
-        presence_penalty=None,
-        frequency_penalty=None,
-        stop_sequences=None,
-        max_output_tokens=None,
-    )
-
-    agent_registry = AgentRegistry()
-    register_default_agents(agent_registry, model)
-
-    card = build_system_card(agent_registry, tool_registry, guardrail_registry)
+    card = build_system_card(registries.agents, registries.tools, registries.guardrails)
     card_hash = hash_system_card(card)
     agents = card.model_dump()["agents"]
 
     tools = []
-    for tool in sorted(tool_registry.list_tools(), key=lambda entry: entry.name):
+    for tool in sorted(registries.tools.list_tools(), key=lambda entry: entry.name):
         used_by = sorted(
             agent["name"] for agent in agents if tool.name in {t["name"] for t in agent["tools"]}
         )

@@ -6,16 +6,9 @@ import sys
 
 import structlog
 
-from system_card.adapters.ollama_digest import verify_model_digest
 from system_card.agents import system_card_agent
 from system_card.core.config import Settings
-from system_card.registry.agent_registry import AgentRegistry
-from system_card.registry.default_agents import register_default_agents
-from system_card.registry.default_guardrails import register_default_guardrails
-from system_card.registry.default_tools import register_default_tools
-from system_card.registry.guardrail_registry import GuardrailRegistry
-from system_card.registry.tool_registry import ToolRegistry
-from system_card.schemas.model_config import ModelConfig, ModelProvider
+from system_card.dependencies.registries import build_pinned_model, build_registries
 from system_card.services.agent_service import AgentService, build_agent_from_spec
 
 logger = structlog.get_logger(__name__)
@@ -23,37 +16,12 @@ logger = structlog.get_logger(__name__)
 
 async def _main(message: str, agent_name: str) -> None:
     settings = Settings()
+    model = build_pinned_model(settings)
+    registries = build_registries(model)
 
-    tool_registry = ToolRegistry()
-    register_default_tools(tool_registry)
-
-    guardrail_registry = GuardrailRegistry()
-    register_default_guardrails(guardrail_registry)
-
-    model = ModelConfig(
-        provider=ModelProvider.OLLAMA,
-        model_name=system_card_agent.PINNED_MODEL_TAG,
-        model_digest=verify_model_digest(
-            system_card_agent.PINNED_MODEL_TAG,
-            settings.ollama_api_base,
-            system_card_agent.PINNED_MODEL_DIGEST,
-        ),
-        temperature=0.7,
-        top_p=1.0,
-        top_k=64,
-        seed=None,
-        presence_penalty=None,
-        frequency_penalty=None,
-        stop_sequences=None,
-        max_output_tokens=None,
-    )
-
-    agent_registry = AgentRegistry()
-    register_default_agents(agent_registry, model)
-
-    spec = agent_registry.get(agent_name)
-    guardrails = [guardrail_registry.get(name) for name in spec.guardrail_names]
-    agent = build_agent_from_spec(spec, tool_registry, settings.ollama_api_base, guardrails)
+    spec = registries.agents.get(agent_name)
+    guardrails = [registries.guardrails.get(name) for name in spec.guardrail_names]
+    agent = build_agent_from_spec(spec, registries.tools, settings.ollama_api_base, guardrails)
     service = AgentService(agent)
 
     reply = await service.run(message)
