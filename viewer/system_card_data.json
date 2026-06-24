@@ -1,6 +1,6 @@
 {
-  "hash": "9150b23ce11957bce41e74425bae2a47e2f970218d8566eb3f9749a58a2a937b",
-  "generated_at": "2026-06-23T23:57:44.199700+00:00",
+  "hash": "d917771f094509846c688fc24e2193f4ff1d31774f927839dc5af3f8782e902b",
+  "generated_at": "2026-06-24T01:26:50.437182+00:00",
   "agents": [
     {
       "name": "ollama_agent",
@@ -84,7 +84,7 @@
         },
         {
           "name": "dad_joke",
-          "description": "Returns a random dad joke from a fixed list.\n\nReturns:\n    A single joke as a plain string.",
+          "description": "Returns a random, groan-worthy dad joke from a fixed list.\n\nReturns:\n    A single joke as a plain string.",
           "parameters": {
             "properties": {},
             "title": "dad_joke",
@@ -192,7 +192,7 @@
     },
     {
       "name": "dad_joke",
-      "description": "Returns a random dad joke from a fixed list.\n\nReturns:\n    A single joke as a plain string.",
+      "description": "Returns a random, groan-worthy dad joke from a fixed list.\n\nReturns:\n    A single joke as a plain string.",
       "parameters": {
         "properties": {},
         "title": "dad_joke",
