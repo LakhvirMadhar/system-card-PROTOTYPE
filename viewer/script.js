@@ -125,6 +125,7 @@ function showAgentDetail(agentName) {
   renderOverview();
   renderModelParams();
   renderInstruction();
+  renderGuardrails();
   renderAgentVersions();
 }
 
@@ -362,6 +363,56 @@ function renderModelParams() {
 function renderInstruction() {
   const agent = activeAgent();
   document.getElementById('instruction-block').textContent = agent.instruction;
+}
+
+function renderGuardrails() {
+  const agent = activeAgent();
+  const list = document.getElementById('guardrail-list');
+  const empty = document.getElementById('guardrail-empty');
+  list.innerHTML = '';
+
+  empty.hidden = agent.guardrails.length > 0;
+
+  for (const guardrail of agent.guardrails) {
+    const article = document.createElement('article');
+    article.className = 'tool-detail';
+    article.innerHTML = `
+      <header class="tool-detail-head" style="cursor: default;">
+        <span class="tool-detail-heading">
+          <span class="tool-detail-name"></span>
+        </span>
+      </header>
+      <dl class="detail-list">
+        <div class="detail-row">
+          <dt>Trigger Keywords</dt>
+          <dd class="guardrail-keywords"></dd>
+        </div>
+        <div class="detail-row">
+          <dt>Classifier Instruction</dt>
+          <dd class="guardrail-classifier"></dd>
+        </div>
+        <div class="detail-row">
+          <dt>Injected Instruction</dt>
+          <dd class="guardrail-injected"></dd>
+        </div>
+      </dl>
+    `;
+
+    article.querySelector('.tool-detail-name').textContent = guardrail.name;
+
+    const keywordsCell = article.querySelector('.guardrail-keywords');
+    for (const keyword of guardrail.trigger_keywords) {
+      const pill = document.createElement('span');
+      pill.className = 'param-pill';
+      pill.textContent = keyword;
+      keywordsCell.appendChild(pill);
+    }
+
+    article.querySelector('.guardrail-classifier').textContent = guardrail.classifier_instruction;
+    article.querySelector('.guardrail-injected').textContent = guardrail.injected_instruction;
+
+    list.appendChild(article);
+  }
 }
 
 function renderAgentVersions() {
