@@ -11,7 +11,9 @@ from system_card.agents import system_card_agent
 from system_card.core.config import Settings
 from system_card.registry.agent_registry import AgentRegistry
 from system_card.registry.default_agents import register_default_agents
+from system_card.registry.default_guardrails import register_default_guardrails
 from system_card.registry.default_tools import register_default_tools
+from system_card.registry.guardrail_registry import GuardrailRegistry
 from system_card.registry.tool_registry import ToolRegistry
 from system_card.schemas.model_config import ModelConfig, ModelProvider
 from system_card.services.agent_service import AgentService, build_agent_from_spec
@@ -19,11 +21,14 @@ from system_card.services.agent_service import AgentService, build_agent_from_sp
 logger = structlog.get_logger(__name__)
 
 
-async def _main(message: str) -> None:
+async def _main(message: str, agent_name: str) -> None:
     settings = Settings()
 
     tool_registry = ToolRegistry()
     register_default_tools(tool_registry)
+
+    guardrail_registry = GuardrailRegistry()
+    register_default_guardrails(guardrail_registry)
 
     model = ModelConfig(
         provider=ModelProvider.OLLAMA,
@@ -46,14 +51,14 @@ async def _main(message: str) -> None:
     agent_registry = AgentRegistry()
     register_default_agents(agent_registry, model)
 
-    agent = build_agent_from_spec(
-        agent_registry.get(system_card_agent.NAME), tool_registry, settings.ollama_api_base
-    )
-    service = AgentService(agent)
+    spec = agent_registry.get(agent_name)
+    agent = build_agent_from_spec(spec, tool_registry, settings.ollama_api_base)
+    guardrails = [guardrail_registry.get(name) for name in spec.guardrail_names]
+    service = AgentService(agent, guardrails)
 
     reply = await service.run(message)
 
-    logger.info("agent.reply", message=message, reply=reply)
+    logger.info("agent.reply", agent=agent_name, message=message, reply=reply)
 
 
 if __name__ == "__main__":
@@ -61,4 +66,5 @@ if __name__ == "__main__":
         sys.stdout.reconfigure(encoding="utf-8")
 
     user_message = sys.argv[1] if len(sys.argv) > 1 else "Flip a coin for me."
-    asyncio.run(_main(user_message))
+    target_agent = sys.argv[2] if len(sys.argv) > 2 else system_card_agent.NAME
+    asyncio.run(_main(user_message, target_agent))

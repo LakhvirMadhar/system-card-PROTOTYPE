@@ -2,6 +2,7 @@
 
 from pydantic import BaseModel
 
+from system_card.schemas.guardrail_spec import GuardrailSpec
 from system_card.schemas.model_config import ModelConfig
 from system_card.schemas.tool_manifest import ToolManifestEntry
 
@@ -26,6 +27,12 @@ class AgentManifestEntry(BaseModel):
         tools: This agent's equipped tools, resolved to their manifest
             entries and sorted by name for deterministic hashing.
         model: The model and generation hyperparameters this agent runs with.
+        guardrails: This agent's wired guardrails, resolved to their full
+            specs and sorted by name. A guardrail's injected instruction
+            never appears in `instruction` above — it's only added to a
+            turn's effective prompt when the guardrail actually fires — so
+            without recording it here, adding or changing a guardrail would
+            be an invisible change to anyone just reading the agent's code.
     """
 
     name: str
@@ -33,3 +40,4 @@ class AgentManifestEntry(BaseModel):
     instruction: str
     tools: list[ToolManifestEntry]
     model: ModelConfig
+    guardrails: list[GuardrailSpec]

@@ -17,6 +17,9 @@ class AgentSpec(BaseModel):
         model: The model and generation hyperparameters this agent runs with.
         tool_names: Names of the tools (as registered in a ToolRegistry) this
             agent is equipped with.
+        guardrail_names: Names of the guardrails (as registered in a
+            GuardrailRegistry) checked against every incoming message before
+            this agent's turn. Defaults to none.
     """
 
     name: str
@@ -24,3 +27,4 @@ class AgentSpec(BaseModel):
     instruction: str
     model: ModelConfig
     tool_names: tuple[str, ...]
+    guardrail_names: tuple[str, ...] = ()

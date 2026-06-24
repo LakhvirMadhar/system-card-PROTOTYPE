@@ -10,6 +10,21 @@ _DEFAULT_TOOLS: tuple[tuple[str, str, str], ...] = (
     ("coin_flip", "system_card.tools.coin_flip", "coin_flip"),
     ("word_count", "system_card.tools.word_count", "word_count"),
     ("ollama_list", "system_card.tools.ollama_list", "ollama_list"),
+    (
+        "nook_product_lookup",
+        "system_card.tools.nook_product_lookup",
+        "nook_product_lookup",
+    ),
+    (
+        "nook_policy_lookup",
+        "system_card.tools.nook_policy_lookup",
+        "nook_policy_lookup",
+    ),
+    (
+        "escalate_to_specialist",
+        "system_card.tools.escalate_to_specialist",
+        "escalate_to_specialist",
+    ),
 )
 
 

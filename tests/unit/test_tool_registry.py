@@ -54,7 +54,7 @@ def test_entry_manifest_captures_name_description_and_parameters() -> None:
     assert "text" in manifest.parameters["properties"]
 
 
-def test_register_default_tools_registers_all_six() -> None:
+def test_register_default_tools_registers_every_default_tool() -> None:
     registry = ToolRegistry()
 
     register_default_tools(registry)
@@ -67,4 +67,7 @@ def test_register_default_tools_registers_all_six() -> None:
         "coin_flip",
         "word_count",
         "ollama_list",
+        "nook_product_lookup",
+        "nook_policy_lookup",
+        "escalate_to_specialist",
     }

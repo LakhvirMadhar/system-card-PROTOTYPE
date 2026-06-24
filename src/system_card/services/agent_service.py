@@ -14,8 +14,28 @@ from google.genai import types
 
 from system_card.registry.tool_registry import ToolRegistry
 from system_card.schemas.agent_spec import AgentSpec
+from system_card.schemas.guardrail_spec import GuardrailSpec
 
 ToolFunction = Callable[..., Any] | BaseTool | BaseToolset
+
+
+def triggered_guardrail_instructions(guardrails: list[GuardrailSpec], message: str) -> list[str]:
+    """Returns the injected_instruction of every guardrail whose trigger fires for message.
+
+    Args:
+        guardrails: The guardrails to check, e.g. an agent's resolved guardrails.
+        message: The incoming user message for this turn.
+
+    Returns:
+        injected_instruction for each guardrail with a matching keyword,
+        in the given guardrails order. Empty if none fire.
+    """
+    lowered = message.lower()
+    return [
+        guardrail.injected_instruction
+        for guardrail in guardrails
+        if any(keyword in lowered for keyword in guardrail.trigger_keywords)
+    ]
 
 
 def effective_instruction(spec: AgentSpec) -> str:
@@ -93,13 +113,16 @@ def build_agent_from_spec(
 class AgentService:
     """Runs the agent against a single user message and returns its final reply."""
 
-    def __init__(self, agent: LlmAgent) -> None:
+    def __init__(self, agent: LlmAgent, guardrails: list[GuardrailSpec] | None = None) -> None:
         """Wraps an in-memory runner around the given agent.
 
         Args:
             agent: The configured LlmAgent to run.
+            guardrails: This agent's resolved guardrails, checked against
+                every incoming message. Defaults to none.
         """
         self._runner = InMemoryRunner(agent=agent)
+        self._guardrails = guardrails or []
 
     async def run(self, message: str) -> str:
         """Sends one message to the agent and returns its final text reply.
@@ -119,7 +142,10 @@ class AgentService:
             session_id=session_id,
         )
 
-        new_message = types.Content(role="user", parts=[types.Part(text=message)])
+        triggered = triggered_guardrail_instructions(self._guardrails, message)
+        effective_message = "\n\n".join([*triggered, message]) if triggered else message
+
+        new_message = types.Content(role="user", parts=[types.Part(text=effective_message)])
 
         reply = ""
 
