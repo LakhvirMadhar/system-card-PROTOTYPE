@@ -40,6 +40,7 @@ def _agent(
         instruction=instruction,
         tools=tools if tools is not None else [_tool()],
         model=model if model is not None else _model(),
+        guardrails=[],
     )
 
 

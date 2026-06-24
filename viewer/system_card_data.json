@@ -1,7 +1,109 @@
 {
-  "hash": "8e993bc7b24d3e49cf798becd5fee0a71a1fc4972f1b936e58561709b17832d8",
-  "generated_at": "2026-06-24T02:11:42.505382+00:00",
+  "hash": "d67c5a4540eed704841c4ebda4207c419ad29954cc40694d7566f2696cc0b89c",
+  "generated_at": "2026-06-24T02:52:47.226565+00:00",
   "agents": [
+    {
+      "name": "nook_support_agent",
+      "description": "Nook Inc.'s customer support agent for product, policy, and escalation requests.",
+      "instruction": "Use the available tools to answer the customer's request about Nook products and policies. When you reply, name which tool(s) you used and what each one returned. Escalate to a specialist when you cannot resolve the request directly.\n\nYou are an agent. Your internal name is \"nook_support_agent\". The description about you is \"Nook Inc.'s customer support agent for product, policy, and escalation requests.\".",
+      "tools": [
+        {
+          "name": "escalate_to_specialist",
+          "description": "Escalates the current case to a human specialist.\n\nArgs:\n    reason: Why this case is being escalated rather than handled by the\n        agent directly.\n\nReturns:\n    A ticket confirming the escalation, with a generated ticket ID.",
+          "parameters": {
+            "properties": {
+              "reason": {
+                "title": "Reason",
+                "type": "string"
+              }
+            },
+            "required": [
+              "reason"
+            ],
+            "title": "escalate_to_specialist",
+            "type": "object"
+          }
+        },
+        {
+          "name": "nook_policy_lookup",
+          "description": "Looks up Nook's policy text for a given topic.\n\nArgs:\n    topic: One of \"returns\", \"shipping\", \"warranty\".\n\nReturns:\n    The policy text for that topic.\n\nRaises:\n    PolicyNotFoundError: If no policy text exists for topic.",
+          "parameters": {
+            "properties": {
+              "topic": {
+                "enum": [
+                  "returns",
+                  "shipping",
+                  "warranty"
+                ],
+                "title": "Topic",
+                "type": "string"
+              }
+            },
+            "required": [
+              "topic"
+            ],
+            "title": "nook_policy_lookup",
+            "type": "object"
+          }
+        },
+        {
+          "name": "nook_product_lookup",
+          "description": "Looks up a Nook product's name, price, and stock status by ID.\n\nArgs:\n    product_id: The product's identifier, e.g. \"nook-100\".\n\nReturns:\n    The matching product's catalog entry.\n\nRaises:\n    ProductNotFoundError: If no product matches product_id.",
+          "parameters": {
+            "properties": {
+              "product_id": {
+                "title": "Product Id",
+                "type": "string"
+              }
+            },
+            "required": [
+              "product_id"
+            ],
+            "title": "nook_product_lookup",
+            "type": "object"
+          }
+        }
+      ],
+      "model": {
+        "provider": "ollama",
+        "model_name": "gemma4:latest",
+        "model_digest": "c6eb396dbd5992bbe3f5cdb947e8bbc0ee413d7c17e2beaae69f5d569cf982eb",
+        "temperature": 0.7,
+        "top_p": 1.0,
+        "top_k": 64,
+        "seed": null,
+        "presence_penalty": null,
+        "frequency_penalty": null,
+        "stop_sequences": null,
+        "max_output_tokens": null
+      },
+      "guardrails": [
+        {
+          "name": "cancellation_guardrail",
+          "trigger_keywords": [
+            "cancel",
+            "refund",
+            "frustrated",
+            "angry",
+            "fed up"
+          ],
+          "classifier_instruction": "Detect whether the customer is expressing intent to cancel, asking for a refund, or showing frustration severe enough to warrant human attention.",
+          "injected_instruction": "The customer's message may signal a cancellation request or significant frustration. Respond with empathy first. Do not attempt to talk the customer out of cancelling yourself \u2014 use escalate_to_specialist instead of resolving this directly."
+        },
+        {
+          "name": "comparative_claims_guardrail",
+          "trigger_keywords": [
+            "competitor",
+            "better than",
+            "vs",
+            "versus",
+            "compared to"
+          ],
+          "classifier_instruction": "Detect whether the customer is asking for a comparison between Nook and a competing product or brand.",
+          "injected_instruction": "The customer's message may be asking for a comparison against a competitor. Do not make comparative claims about other brands or products. Stick to factual information about Nook's own products and policies only."
+        }
+      ]
+    },
     {
       "name": "ollama_agent",
       "description": "A small agent that lists which Ollama models are available locally.",
@@ -35,7 +137,8 @@
         "frequency_penalty": null,
         "stop_sequences": null,
         "max_output_tokens": null
-      }
+      },
+      "guardrails": []
     },
     {
       "name": "system_card_agent",
@@ -140,7 +243,8 @@
         "frequency_penalty": null,
         "stop_sequences": null,
         "max_output_tokens": null
-      }
+      },
+      "guardrails": []
     }
   ],
   "tools": [
@@ -202,6 +306,71 @@
       },
       "used_by": [
         "system_card_agent"
+      ]
+    },
+    {
+      "name": "escalate_to_specialist",
+      "description": "Escalates the current case to a human specialist.\n\nArgs:\n    reason: Why this case is being escalated rather than handled by the\n        agent directly.\n\nReturns:\n    A ticket confirming the escalation, with a generated ticket ID.",
+      "parameters": {
+        "properties": {
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "reason"
+        ],
+        "title": "escalate_to_specialist",
+        "type": "object"
+      },
+      "used_by": [
+        "nook_support_agent"
+      ]
+    },
+    {
+      "name": "nook_policy_lookup",
+      "description": "Looks up Nook's policy text for a given topic.\n\nArgs:\n    topic: One of \"returns\", \"shipping\", \"warranty\".\n\nReturns:\n    The policy text for that topic.\n\nRaises:\n    PolicyNotFoundError: If no policy text exists for topic.",
+      "parameters": {
+        "properties": {
+          "topic": {
+            "enum": [
+              "returns",
+              "shipping",
+              "warranty"
+            ],
+            "title": "Topic",
+            "type": "string"
+          }
+        },
+        "required": [
+          "topic"
+        ],
+        "title": "nook_policy_lookup",
+        "type": "object"
+      },
+      "used_by": [
+        "nook_support_agent"
+      ]
+    },
+    {
+      "name": "nook_product_lookup",
+      "description": "Looks up a Nook product's name, price, and stock status by ID.\n\nArgs:\n    product_id: The product's identifier, e.g. \"nook-100\".\n\nReturns:\n    The matching product's catalog entry.\n\nRaises:\n    ProductNotFoundError: If no product matches product_id.",
+      "parameters": {
+        "properties": {
+          "product_id": {
+            "title": "Product Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "product_id"
+        ],
+        "title": "nook_product_lookup",
+        "type": "object"
+      },
+      "used_by": [
+        "nook_support_agent"
       ]
     },
     {

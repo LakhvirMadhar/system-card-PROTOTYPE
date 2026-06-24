@@ -3,23 +3,30 @@
 import hashlib
 
 from system_card.registry.agent_registry import AgentRegistry
+from system_card.registry.guardrail_registry import GuardrailRegistry
 from system_card.registry.tool_registry import ToolRegistry
 from system_card.schemas.agent_manifest import AgentManifestEntry
 from system_card.schemas.system_card import SystemCard
 from system_card.services.agent_service import effective_instruction
 
 
-def build_system_card(agent_registry: AgentRegistry, tool_registry: ToolRegistry) -> SystemCard:
+def build_system_card(
+    agent_registry: AgentRegistry,
+    tool_registry: ToolRegistry,
+    guardrail_registry: GuardrailRegistry,
+) -> SystemCard:
     """Builds the system card from every registered agent, tools resolved per agent.
 
     Args:
         agent_registry: The populated agent registry.
         tool_registry: The populated tool registry, used to resolve each
             agent's tool_names into manifest entries.
+        guardrail_registry: The populated guardrail registry, used to
+            resolve each agent's guardrail_names into full guardrail specs.
 
     Returns:
         A SystemCard capturing every agent's current behavior surface,
-        agents and their tools both sorted by name.
+        agents and their tools/guardrails both sorted by name.
     """
     agents = []
 
@@ -28,6 +35,10 @@ def build_system_card(agent_registry: AgentRegistry, tool_registry: ToolRegistry
             (tool_registry.get(name).manifest() for name in spec.tool_names),
             key=lambda tool: tool.name,
         )
+        guardrails = sorted(
+            (guardrail_registry.get(name) for name in spec.guardrail_names),
+            key=lambda guardrail: guardrail.name,
+        )
         agents.append(
             AgentManifestEntry(
                 name=spec.name,
@@ -35,6 +46,7 @@ def build_system_card(agent_registry: AgentRegistry, tool_registry: ToolRegistry
                 instruction=effective_instruction(spec),
                 tools=tools,
                 model=spec.model,
+                guardrails=guardrails,
             )
         )
 
