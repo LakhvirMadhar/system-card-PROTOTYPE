@@ -101,6 +101,25 @@ def test_model_change_is_flagged() -> None:
     assert diff.agent_diffs[0].model_changed is True
 
 
+def test_a_newly_added_agents_tools_are_each_reported_as_added() -> None:
+    old = SystemCard(agents=[])
+    new = SystemCard(agents=[_agent(tools=[_tool("calculator"), _tool("dad_joke")])])
+
+    diff = diff_system_cards(old, new)
+
+    tool_names = {(d.name, d.change) for d in diff.agent_diffs[0].tool_diffs}
+    assert tool_names == {("calculator", "added"), ("dad_joke", "added")}
+
+
+def test_a_removed_agents_tools_are_each_reported_as_removed() -> None:
+    old = SystemCard(agents=[_agent(tools=[_tool("calculator")])])
+    new = SystemCard(agents=[])
+
+    diff = diff_system_cards(old, new)
+
+    assert diff.agent_diffs[0].tool_diffs == [ToolDiff(name="calculator", change="removed")]
+
+
 def test_added_and_removed_agents_are_both_reported() -> None:
     old = SystemCard(agents=[_agent(name="agent_a")])
     new = SystemCard(agents=[_agent(name="agent_b")])

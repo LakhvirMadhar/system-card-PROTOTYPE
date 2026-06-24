@@ -51,11 +51,20 @@ def diff_system_cards(old: SystemCard, new: SystemCard) -> SystemCardDiff:
     old_agents = {agent.name: agent for agent in old.agents}
     new_agents = {agent.name: agent for agent in new.agents}
 
+    def _all_tools_as(agent: AgentManifestEntry, change: str) -> list[ToolDiff]:
+        return [ToolDiff(name=tool.name, change=change) for tool in agent.tools]
+
     agent_diffs = [
-        AgentDiff(name=name, change="added") for name in new_agents if name not in old_agents
+        AgentDiff(name=name, change="added", tool_diffs=_all_tools_as(new_agents[name], "added"))
+        for name in new_agents
+        if name not in old_agents
     ]
     agent_diffs += [
-        AgentDiff(name=name, change="removed") for name in old_agents if name not in new_agents
+        AgentDiff(
+            name=name, change="removed", tool_diffs=_all_tools_as(old_agents[name], "removed")
+        )
+        for name in old_agents
+        if name not in new_agents
     ]
 
     for name in old_agents.keys() & new_agents.keys():
@@ -81,12 +90,11 @@ def format_diff(diff: SystemCardDiff) -> str:
     for agent_diff in diff.agent_diffs:
         if agent_diff.change == "added":
             lines.append(f"+ added agent: {agent_diff.name}")
-            continue
-        if agent_diff.change == "removed":
+        elif agent_diff.change == "removed":
             lines.append(f"- removed agent: {agent_diff.name}")
-            continue
+        else:
+            lines.append(f"~ changed agent: {agent_diff.name}")
 
-        lines.append(f"~ changed agent: {agent_diff.name}")
         for tool_diff in agent_diff.tool_diffs:
             symbol = {"added": "+", "removed": "-", "changed": "~"}[tool_diff.change]
             lines.append(f"  {symbol} {tool_diff.change} tool: {tool_diff.name}")
