@@ -1,6 +1,6 @@
 {
   "hash": "d67c5a4540eed704841c4ebda4207c419ad29954cc40694d7566f2696cc0b89c",
-  "generated_at": "2026-06-24T02:52:47.226565+00:00",
+  "generated_at": "2026-06-24T03:36:51.646808+00:00",
   "agents": [
     {
       "name": "nook_support_agent",
@@ -432,5 +432,73 @@
       ]
     }
   ],
-  "history": []
+  "history": [
+    {
+      "version": "v1",
+      "hash": "d67c5a4540eed704841c4ebda4207c419ad29954cc40694d7566f2696cc0b89c",
+      "diff": "+ added agent: nook_support_agent\n  + added tool: escalate_to_specialist\n  + added tool: nook_policy_lookup\n  + added tool: nook_product_lookup\n+ added agent: ollama_agent\n  + added tool: ollama_list\n+ added agent: system_card_agent\n  + added tool: calculator\n  + added tool: coin_flip\n  + added tool: dad_joke\n  + added tool: shakespearify\n  + added tool: word_count",
+      "agent_diffs": [
+        {
+          "name": "nook_support_agent",
+          "change": "added",
+          "tool_diffs": [
+            {
+              "name": "escalate_to_specialist",
+              "change": "added"
+            },
+            {
+              "name": "nook_policy_lookup",
+              "change": "added"
+            },
+            {
+              "name": "nook_product_lookup",
+              "change": "added"
+            }
+          ],
+          "instruction_changed": false,
+          "model_changed": false
+        },
+        {
+          "name": "ollama_agent",
+          "change": "added",
+          "tool_diffs": [
+            {
+              "name": "ollama_list",
+              "change": "added"
+            }
+          ],
+          "instruction_changed": false,
+          "model_changed": false
+        },
+        {
+          "name": "system_card_agent",
+          "change": "added",
+          "tool_diffs": [
+            {
+              "name": "calculator",
+              "change": "added"
+            },
+            {
+              "name": "coin_flip",
+              "change": "added"
+            },
+            {
+              "name": "dad_joke",
+              "change": "added"
+            },
+            {
+              "name": "shakespearify",
+              "change": "added"
+            },
+            {
+              "name": "word_count",
+              "change": "added"
+            }
+          ],
+          "instruction_changed": false,
+          "model_changed": false
+        }
+      ]
+    }
+  ]
 }
