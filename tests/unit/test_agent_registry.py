@@ -24,6 +24,7 @@ def _spec(name: str = "system_card_agent") -> AgentSpec:
     )
     return AgentSpec(
         name=name,
+        description="A test agent.",
         instruction="Use the available tools to answer the user's request.",
         model=model,
         tool_names=("calculator", "dad_joke"),

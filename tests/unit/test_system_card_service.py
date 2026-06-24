@@ -36,11 +36,13 @@ def _agent_registry(
     model: ModelConfig | None = None,
     tool_names: tuple[str, ...] = ("calculator", "dad_joke"),
     name: str = "test_agent",
+    description: str = "A test agent.",
 ) -> AgentRegistry:
     registry = AgentRegistry()
     registry.register(
         AgentSpec(
             name=name,
+            description=description,
             instruction="Use the available tools.",
             model=model or _model(),
             tool_names=tool_names,
@@ -101,6 +103,21 @@ def test_hash_changes_when_an_agent_gains_a_tool() -> None:
     assert before != after
 
 
+def test_hash_changes_when_description_changes_even_if_instruction_text_does_not() -> None:
+    """description is folded into the model-facing effective instruction (ADK injects it),
+    so it has to affect the hash even with the raw instruction string held constant."""
+    tool_registry = _populated_tool_registry()
+
+    before = hash_system_card(
+        build_system_card(_agent_registry(description="Agent A."), tool_registry)
+    )
+    after = hash_system_card(
+        build_system_card(_agent_registry(description="Agent B."), tool_registry)
+    )
+
+    assert before != after
+
+
 def test_hash_changes_when_a_hyperparameter_changes() -> None:
     tool_registry = _populated_tool_registry()
 
@@ -152,6 +169,7 @@ def test_hash_changes_when_a_second_agent_is_added() -> None:
     two_agents.register(
         AgentSpec(
             name="second_agent",
+            description="A test agent.",
             instruction="Use the available tools.",
             model=_model(),
             tool_names=("coin_flip",),

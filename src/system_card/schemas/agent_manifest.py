@@ -15,13 +15,21 @@ class AgentManifestEntry(BaseModel):
 
     Attributes:
         name: The agent's name.
-        instruction: The system instruction guiding the agent's behavior.
+        description: A short description of the agent. ADK injects this into
+            the model-facing system instruction alongside the agent's name,
+            so it's part of the card's behavior surface, not just metadata.
+        instruction: The full effective system instruction the model actually
+            receives — the configured instruction plus ADK's own injected
+            identity preamble (see services.agent_service.effective_instruction).
+            Deliberately not just the raw configured string, since that alone
+            wouldn't match what the model is given.
         tools: This agent's equipped tools, resolved to their manifest
             entries and sorted by name for deterministic hashing.
         model: The model and generation hyperparameters this agent runs with.
     """
 
     name: str
+    description: str
     instruction: str
     tools: list[ToolManifestEntry]
     model: ModelConfig

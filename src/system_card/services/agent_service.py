@@ -18,6 +18,35 @@ from system_card.schemas.agent_spec import AgentSpec
 ToolFunction = Callable[..., Any] | BaseTool | BaseToolset
 
 
+def effective_instruction(spec: AgentSpec) -> str:
+    """Reconstructs the full instruction ADK actually sends to the model.
+
+    ADK's identity request processor (google.adk.flows.llm_flows.identity)
+    silently appends a "You are an agent..." preamble naming the agent and
+    its description onto the configured instruction, for any agent run in
+    the default "chat" mode (the only mode InMemoryRunner accepts for a root
+    agent — "single_turn" would suppress this, but isn't usable here). The
+    system card's recorded instruction has to include this, or it wouldn't
+    match what the model is actually given — defeating the card's purpose.
+
+    This reproduces that processor's exact string format (a private, but
+    small and stable, part of ADK) rather than calling it directly, since
+    it's not part of ADK's public API.
+
+    Args:
+        spec: The agent spec whose effective instruction to compute.
+
+    Returns:
+        spec.instruction with ADK's identity preamble appended, exactly as
+        the model actually receives it.
+    """
+    identity = f'You are an agent. Your internal name is "{spec.name}".'
+    if spec.description:
+        identity += f' The description about you is "{spec.description}".'
+
+    return f"{spec.instruction}\n\n{identity}"
+
+
 def build_agent_from_spec(
     spec: AgentSpec, tool_registry: ToolRegistry, ollama_api_base: str
 ) -> LlmAgent:
@@ -53,7 +82,7 @@ def build_agent_from_spec(
 
     return LlmAgent(
         name=spec.name,
-        description="A small agent exposing a handful of toy tools.",
+        description=spec.description,
         model=LiteLlm(model=f"ollama_chat/{model.model_name}"),
         instruction=spec.instruction,
         tools=tool_functions,
