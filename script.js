@@ -125,6 +125,7 @@ function showAgentDetail(agentName) {
   renderOverview();
   renderModelParams();
   renderInstruction();
+  renderAgentVersions();
 }
 
 document.getElementById('nav-home').addEventListener('click', () => showView('home'));
@@ -191,6 +192,10 @@ function renderToolRegistry() {
           <dt>Used By</dt>
           <dd class="tool-detail-used-by"></dd>
         </div>
+        <div class="detail-row">
+          <dt>Version History</dt>
+          <dd class="tool-detail-versions"></dd>
+        </div>
       </dl>
     `;
 
@@ -207,6 +212,24 @@ function renderToolRegistry() {
       usedByCell.appendChild(none);
     } else {
       usedByCell.textContent = tool.used_by.join(', ');
+    }
+
+    const versionsCell = article.querySelector('.tool-detail-versions');
+    const versions = toolVersionHistory(tool.name);
+    if (versions.length === 0) {
+      const none = document.createElement('em');
+      none.className = 'no-params';
+      none.textContent = 'no recorded versions yet';
+      versionsCell.appendChild(none);
+    } else {
+      const ul = document.createElement('ul');
+      ul.className = 'tool-version-history';
+      for (const line of [...versions].reverse()) {
+        const li = document.createElement('li');
+        li.textContent = line;
+        ul.appendChild(li);
+      }
+      versionsCell.appendChild(ul);
     }
 
     const chevron = article.querySelector('.tool-detail-chevron');
@@ -339,6 +362,57 @@ function renderModelParams() {
 function renderInstruction() {
   const agent = activeAgent();
   document.getElementById('instruction-block').textContent = agent.instruction;
+}
+
+function renderAgentVersions() {
+  const agentName = activeAgentName;
+  const timeline = document.getElementById('agent-version-timeline');
+  const empty = document.getElementById('agent-version-empty');
+  timeline.innerHTML = '';
+
+  const relevant = SYSTEM_CARD_DATA.history.filter((entry) =>
+    entry.agent_diffs.some((d) => d.name === agentName)
+  );
+
+  empty.hidden = relevant.length > 0;
+
+  for (const entry of [...relevant].reverse()) {
+    const agentDiff = entry.agent_diffs.find((d) => d.name === agentName);
+    const lines = [];
+    if (agentDiff.change !== 'changed') {
+      lines.push(`${agentDiff.change} agent`);
+    } else {
+      for (const toolDiff of agentDiff.tool_diffs) {
+        lines.push(`${toolDiff.change} tool: ${toolDiff.name}`);
+      }
+      if (agentDiff.instruction_changed) lines.push('changed: system instruction');
+      if (agentDiff.model_changed) lines.push('changed: model config');
+    }
+
+    const li = document.createElement('li');
+    li.className = 'tl-entry';
+    li.innerHTML = `
+      <span class="tl-dot"></span>
+      <span class="tl-hash"></span>
+      <p class="tl-diff"></p>
+    `;
+    li.querySelector('.tl-hash').textContent = entry.version;
+    li.querySelector('.tl-diff').textContent = lines.join('\n');
+    timeline.appendChild(li);
+  }
+}
+
+function toolVersionHistory(toolName) {
+  const changes = [];
+  for (const entry of SYSTEM_CARD_DATA.history) {
+    let change = null;
+    for (const agentDiff of entry.agent_diffs) {
+      const toolDiff = agentDiff.tool_diffs.find((d) => d.name === toolName);
+      if (toolDiff) change = toolDiff.change;
+    }
+    if (change) changes.push(`${entry.version}: ${change}`);
+  }
+  return changes;
 }
 
 document.querySelectorAll('.section-nav button').forEach((btn) => {
