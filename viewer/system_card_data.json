@@ -1,6 +1,7 @@
 {
   "hash": "d67c5a4540eed704841c4ebda4207c419ad29954cc40694d7566f2696cc0b89c",
-  "generated_at": "2026-06-24T11:42:29.035318+00:00",
+  "generated_at": "2026-06-24T12:25:31.148817+00:00",
+  "repo_url": "https://github.com/LakhvirMadhar/system-card",
   "agents": [
     {
       "name": "nook_support_agent",
@@ -437,7 +438,7 @@
       "version": "card-v1",
       "commit": "2c4fe0e516af6d12454013f3674eb1de3efa5fa7",
       "hash": "235a2899b8a379d570790bddbe818abc2e8e2713e17002e4ffad8143c11b1d53",
-      "diff": "+ added agent: nook_support_agent\n  + added tool: escalate_to_specialist\n  + added tool: nook_policy_lookup\n  + added tool: nook_product_lookup\n+ added agent: ollama_agent\n  + added tool: ollama_list\n+ added agent: system_card_agent\n  + added tool: calculator\n  + added tool: coin_flip\n  + added tool: dad_joke\n  + added tool: shakespearify\n  + added tool: word_count",
+      "diff": "+ added agent: nook_support_agent\n  + added tool: escalate_to_specialist\n  + added tool: nook_policy_lookup\n  + added tool: nook_product_lookup\n  + added guardrail: cancellation_guardrail\n  + added guardrail: comparative_claims_guardrail\n  ~ changed: system instruction\n  ~ changed: model config\n+ added agent: ollama_agent\n  + added tool: ollama_list\n  ~ changed: system instruction\n  ~ changed: model config\n+ added agent: system_card_agent\n  + added tool: calculator\n  + added tool: coin_flip\n  + added tool: dad_joke\n  + added tool: shakespearify\n  + added tool: word_count\n  ~ changed: system instruction\n  ~ changed: model config",
       "agent_diffs": [
         {
           "name": "nook_support_agent",
@@ -456,8 +457,18 @@
               "change": "added"
             }
           ],
-          "instruction_changed": false,
-          "model_changed": false
+          "guardrail_diffs": [
+            {
+              "name": "cancellation_guardrail",
+              "change": "added"
+            },
+            {
+              "name": "comparative_claims_guardrail",
+              "change": "added"
+            }
+          ],
+          "instruction_changed": true,
+          "model_changed": true
         },
         {
           "name": "ollama_agent",
@@ -468,8 +479,9 @@
               "change": "added"
             }
           ],
-          "instruction_changed": false,
-          "model_changed": false
+          "guardrail_diffs": [],
+          "instruction_changed": true,
+          "model_changed": true
         },
         {
           "name": "system_card_agent",
@@ -496,8 +508,9 @@
               "change": "added"
             }
           ],
-          "instruction_changed": false,
-          "model_changed": false
+          "guardrail_diffs": [],
+          "instruction_changed": true,
+          "model_changed": true
         }
       ]
     }

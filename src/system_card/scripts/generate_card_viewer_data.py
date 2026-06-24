@@ -74,6 +74,7 @@ def _main(output_path: Path) -> None:
     payload = {
         "hash": card_hash,
         "generated_at": datetime.now(UTC).isoformat(),
+        "repo_url": settings.repo_url,
         "agents": agents,
         "tools": tools,
         "history": _build_version_history(),

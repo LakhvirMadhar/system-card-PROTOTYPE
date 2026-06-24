@@ -15,3 +15,4 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
     ollama_api_base: str = "http://localhost:11434"
+    repo_url: str = "https://github.com/LakhvirMadhar/system-card"
