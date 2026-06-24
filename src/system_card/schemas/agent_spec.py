@@ -10,6 +10,9 @@ class AgentSpec(BaseModel):
 
     Attributes:
         name: The agent's unique name.
+        description: A short description of what the agent does. ADK injects
+            this into the model-facing system instruction alongside the
+            agent's name, so it's part of the card's behavior surface too.
         instruction: The system instruction guiding the agent's behavior.
         model: The model and generation hyperparameters this agent runs with.
         tool_names: Names of the tools (as registered in a ToolRegistry) this
@@ -17,6 +20,7 @@ class AgentSpec(BaseModel):
     """
 
     name: str
+    description: str
     instruction: str
     model: ModelConfig
     tool_names: tuple[str, ...]

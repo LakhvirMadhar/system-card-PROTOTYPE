@@ -5,6 +5,11 @@ from system_card.schemas.model_config import ModelConfig
 
 NAME = "system_card_agent"
 
+DESCRIPTION = (
+    "A small agent exposing a handful of toy tools: "
+    "calculator, dad_joke, shakespearify, coin_flip, word_count."
+)
+
 INSTRUCTION = (
     "Use the available tools to answer the user's request. "
     "When you reply, name which tool(s) you used and what each one returned."
@@ -28,6 +33,7 @@ def build_spec(model: ModelConfig) -> AgentSpec:
     """
     return AgentSpec(
         name=NAME,
+        description=DESCRIPTION,
         instruction=INSTRUCTION,
         model=model,
         tool_names=TOOL_NAMES,

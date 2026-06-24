@@ -6,6 +6,7 @@ from system_card.registry.agent_registry import AgentRegistry
 from system_card.registry.tool_registry import ToolRegistry
 from system_card.schemas.agent_manifest import AgentManifestEntry
 from system_card.schemas.system_card import SystemCard
+from system_card.services.agent_service import effective_instruction
 
 
 def build_system_card(agent_registry: AgentRegistry, tool_registry: ToolRegistry) -> SystemCard:
@@ -30,7 +31,8 @@ def build_system_card(agent_registry: AgentRegistry, tool_registry: ToolRegistry
         agents.append(
             AgentManifestEntry(
                 name=spec.name,
-                instruction=spec.instruction,
+                description=spec.description,
+                instruction=effective_instruction(spec),
                 tools=tools,
                 model=spec.model,
             )

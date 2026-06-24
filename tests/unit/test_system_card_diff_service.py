@@ -36,6 +36,7 @@ def _agent(
 ) -> AgentManifestEntry:
     return AgentManifestEntry(
         name=name,
+        description="A test agent.",
         instruction=instruction,
         tools=tools if tools is not None else [_tool()],
         model=model if model is not None else _model(),

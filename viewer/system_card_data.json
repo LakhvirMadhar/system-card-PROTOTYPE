@@ -1,10 +1,11 @@
 {
-  "hash": "9150b23ce11957bce41e74425bae2a47e2f970218d8566eb3f9749a58a2a937b",
-  "generated_at": "2026-06-24T01:34:15.958322+00:00",
+  "hash": "8e993bc7b24d3e49cf798becd5fee0a71a1fc4972f1b936e58561709b17832d8",
+  "generated_at": "2026-06-24T02:11:42.505382+00:00",
   "agents": [
     {
       "name": "ollama_agent",
-      "instruction": "Use the available tools to answer questions about which Ollama models are available locally. When you reply, name which tool(s) you used and what each one returned.",
+      "description": "A small agent that lists which Ollama models are available locally.",
+      "instruction": "Use the available tools to answer questions about which Ollama models are available locally. When you reply, name which tool(s) you used and what each one returned.\n\nYou are an agent. Your internal name is \"ollama_agent\". The description about you is \"A small agent that lists which Ollama models are available locally.\".",
       "tools": [
         {
           "name": "ollama_list",
@@ -38,7 +39,8 @@
     },
     {
       "name": "system_card_agent",
-      "instruction": "Use the available tools to answer the user's request. When you reply, name which tool(s) you used and what each one returned.",
+      "description": "A small agent exposing a handful of toy tools: calculator, dad_joke, shakespearify, coin_flip, word_count.",
+      "instruction": "Use the available tools to answer the user's request. When you reply, name which tool(s) you used and what each one returned.\n\nYou are an agent. Your internal name is \"system_card_agent\". The description about you is \"A small agent exposing a handful of toy tools: calculator, dad_joke, shakespearify, coin_flip, word_count.\".",
       "tools": [
         {
           "name": "calculator",
@@ -261,53 +263,5 @@
       ]
     }
   ],
-  "history": [
-    {
-      "version": "v1",
-      "hash": "9150b23ce11957bce41e74425bae2a47e2f970218d8566eb3f9749a58a2a937b",
-      "diff": "+ added agent: ollama_agent\n  + added tool: ollama_list\n+ added agent: system_card_agent\n  + added tool: calculator\n  + added tool: coin_flip\n  + added tool: dad_joke\n  + added tool: shakespearify\n  + added tool: word_count",
-      "agent_diffs": [
-        {
-          "name": "ollama_agent",
-          "change": "added",
-          "tool_diffs": [
-            {
-              "name": "ollama_list",
-              "change": "added"
-            }
-          ],
-          "instruction_changed": false,
-          "model_changed": false
-        },
-        {
-          "name": "system_card_agent",
-          "change": "added",
-          "tool_diffs": [
-            {
-              "name": "calculator",
-              "change": "added"
-            },
-            {
-              "name": "coin_flip",
-              "change": "added"
-            },
-            {
-              "name": "dad_joke",
-              "change": "added"
-            },
-            {
-              "name": "shakespearify",
-              "change": "added"
-            },
-            {
-              "name": "word_count",
-              "change": "added"
-            }
-          ],
-          "instruction_changed": false,
-          "model_changed": false
-        }
-      ]
-    }
-  ]
+  "history": []
 }

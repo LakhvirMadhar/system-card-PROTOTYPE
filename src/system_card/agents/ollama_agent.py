@@ -5,6 +5,8 @@ from system_card.schemas.model_config import ModelConfig
 
 NAME = "ollama_agent"
 
+DESCRIPTION = "A small agent that lists which Ollama models are available locally."
+
 INSTRUCTION = (
     "Use the available tools to answer questions about which Ollama models "
     "are available locally. When you reply, name which tool(s) you used and "
@@ -29,6 +31,7 @@ def build_spec(model: ModelConfig) -> AgentSpec:
     """
     return AgentSpec(
         name=NAME,
+        description=DESCRIPTION,
         instruction=INSTRUCTION,
         model=model,
         tool_names=TOOL_NAMES,
