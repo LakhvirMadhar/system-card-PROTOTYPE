@@ -127,6 +127,7 @@
           <button class="active" data-panel="overview">Overview</button>
           <button data-panel="model">Model Params</button>
           <button data-panel="instruction">Instruction</button>
+          <button data-panel="guardrails">Guardrails</button>
           <button data-panel="versions">Versions</button>
         </nav>
 
@@ -152,6 +153,20 @@
             <p class="section-note">the full system prompt this agent runs with</p>
           </header>
           <pre class="instruction-block" id="instruction-block"></pre>
+        </section>
+
+        <section class="panel" id="panel-guardrails">
+          <header class="section-head">
+            <h2>Guardrails</h2>
+            <p class="section-note">
+              conditionally-injected instructions — never appear in System Instruction above,
+              only added to a turn's effective prompt when a guardrail's trigger fires
+            </p>
+          </header>
+          <div id="guardrail-list"></div>
+          <p class="empty-state" id="guardrail-empty" hidden>
+            This agent has no guardrails wired in.
+          </p>
         </section>
 
         <section class="panel" id="panel-versions">
