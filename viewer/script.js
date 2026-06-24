@@ -445,9 +445,15 @@ function renderAgentVersions() {
     li.innerHTML = `
       <span class="tl-dot"></span>
       <span class="tl-hash"></span>
+      <a class="tl-commit" target="_blank" rel="noopener"></a>
       <p class="tl-diff"></p>
     `;
     li.querySelector('.tl-hash').textContent = entry.version;
+
+    const commitLink = li.querySelector('.tl-commit');
+    commitLink.textContent = entry.commit.slice(0, 7);
+    commitLink.href = `https://github.com/LakhvirMadhar/system-card/commit/${entry.commit}`;
+
     li.querySelector('.tl-diff').textContent = lines.join('\n');
     timeline.appendChild(li);
   }

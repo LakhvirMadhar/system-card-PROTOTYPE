@@ -17,7 +17,7 @@ import structlog
 from system_card.core.config import Settings
 from system_card.dependencies.registries import build_pinned_model, build_registries
 from system_card.schemas.system_card import SystemCard
-from system_card.scripts._git_card_history import card_at_tag, list_card_tags
+from system_card.scripts._git_card_history import card_at_tag, commit_sha_for_tag, list_card_tags
 from system_card.services.system_card_diff_service import diff_system_cards, format_diff
 from system_card.services.system_card_service import build_system_card, hash_system_card
 
@@ -44,6 +44,7 @@ def _build_version_history() -> list[dict[str, object]]:
         history.append(
             {
                 "version": tag,
+                "commit": commit_sha_for_tag(tag),
                 "hash": hash_system_card(current_card),
                 "diff": format_diff(diff),
                 "agent_diffs": diff.model_dump()["agent_diffs"],

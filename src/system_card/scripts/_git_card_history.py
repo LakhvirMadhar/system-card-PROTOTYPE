@@ -47,6 +47,25 @@ def latest_card_tag() -> tuple[int, str] | None:
     return tags[-1] if tags else None
 
 
+def commit_sha_for_tag(tag: str) -> str:
+    """Resolves a tag to the full commit SHA it points at.
+
+    Args:
+        tag: The git tag to resolve.
+
+    Returns:
+        The full 40-character commit SHA.
+    """
+    result = subprocess.run(
+        ["git", "rev-list", "-n", "1", tag],
+        capture_output=True,
+        text=True,
+        check=True,
+    )
+
+    return result.stdout.strip()
+
+
 def card_at_tag(tag: str) -> SystemCard:
     """Computes the system card exactly as it existed at the given git tag.
 
