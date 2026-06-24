@@ -9,8 +9,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
   group: pages
@@ -19,17 +18,12 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Upload viewer/ as the Pages artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: Publish viewer/ to gh-pages root
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          path: viewer
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: viewer
+          keep_files: true
