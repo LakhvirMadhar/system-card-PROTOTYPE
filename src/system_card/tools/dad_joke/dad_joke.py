@@ -13,7 +13,7 @@ _JOKES: tuple[str, ...] = (
 
 
 def dad_joke() -> str:
-    """Returns a random dad joke from a fixed list.
+    """Returns a random, groan-worthy dad joke from a fixed list.
 
     Returns:
         A single joke as a plain string.
