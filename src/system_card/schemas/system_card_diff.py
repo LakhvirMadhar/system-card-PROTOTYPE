@@ -16,6 +16,19 @@ class ToolDiff(BaseModel):
     change: str
 
 
+class GuardrailDiff(BaseModel):
+    """One guardrail's change between two card versions.
+
+    Attributes:
+        name: The guardrail's name.
+        change: Whether the guardrail was added, removed, or had its
+            trigger keywords or injected instruction changed.
+    """
+
+    name: str
+    change: str
+
+
 class AgentDiff(BaseModel):
     """One agent's changes between two card versions.
 
@@ -23,6 +36,8 @@ class AgentDiff(BaseModel):
         name: The agent's name.
         change: Whether the agent itself was added, removed, or changed.
         tool_diffs: Per-tool changes, only present when change == "changed".
+        guardrail_diffs: Per-guardrail changes, only present when
+            change == "changed".
         instruction_changed: Whether the system instruction text changed.
         model_changed: Whether the model config (name/digest/hyperparameters)
             changed.
@@ -31,6 +46,7 @@ class AgentDiff(BaseModel):
     name: str
     change: str
     tool_diffs: list[ToolDiff] = []
+    guardrail_diffs: list[GuardrailDiff] = []
     instruction_changed: bool = False
     model_changed: bool = False
 

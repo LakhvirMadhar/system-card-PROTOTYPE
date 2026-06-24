@@ -1,9 +1,10 @@
 """Unit tests for diffing two system card versions."""
 
 from system_card.schemas.agent_manifest import AgentManifestEntry
+from system_card.schemas.guardrail_spec import GuardrailSpec
 from system_card.schemas.model_config import ModelConfig, ModelProvider
 from system_card.schemas.system_card import SystemCard
-from system_card.schemas.system_card_diff import ToolDiff
+from system_card.schemas.system_card_diff import GuardrailDiff, ToolDiff
 from system_card.schemas.tool_manifest import ToolManifestEntry
 from system_card.services.system_card_diff_service import diff_system_cards, format_diff
 
@@ -28,9 +29,19 @@ def _tool(name: str = "calculator", description: str = "Adds numbers.") -> ToolM
     return ToolManifestEntry(name=name, description=description, parameters={})
 
 
+def _guardrail(name: str = "no_secrets", injected_instruction: str = "Refuse.") -> GuardrailSpec:
+    return GuardrailSpec(
+        name=name,
+        trigger_keywords=("secret",),
+        classifier_instruction="Detect secret requests.",
+        injected_instruction=injected_instruction,
+    )
+
+
 def _agent(
     name: str = "agent",
     tools: list[ToolManifestEntry] | None = None,
+    guardrails: list[GuardrailSpec] | None = None,
     instruction: str = "Be helpful.",
     model: ModelConfig | None = None,
 ) -> AgentManifestEntry:
@@ -40,7 +51,7 @@ def _agent(
         instruction=instruction,
         tools=tools if tools is not None else [_tool()],
         model=model if model is not None else _model(),
-        guardrails=[],
+        guardrails=guardrails if guardrails is not None else [],
     )
 
 
@@ -113,6 +124,26 @@ def test_a_newly_added_agents_tools_are_each_reported_as_added() -> None:
     assert tool_names == {("calculator", "added"), ("dad_joke", "added")}
 
 
+def test_a_newly_added_agent_flags_its_instruction_and_model_as_changed() -> None:
+    old = SystemCard(agents=[])
+    new = SystemCard(agents=[_agent()])
+
+    diff = diff_system_cards(old, new)
+
+    assert diff.agent_diffs[0].instruction_changed is True
+    assert diff.agent_diffs[0].model_changed is True
+
+
+def test_a_removed_agent_flags_its_instruction_and_model_as_changed() -> None:
+    old = SystemCard(agents=[_agent()])
+    new = SystemCard(agents=[])
+
+    diff = diff_system_cards(old, new)
+
+    assert diff.agent_diffs[0].instruction_changed is True
+    assert diff.agent_diffs[0].model_changed is True
+
+
 def test_a_removed_agents_tools_are_each_reported_as_removed() -> None:
     old = SystemCard(agents=[_agent(tools=[_tool("calculator")])])
     new = SystemCard(agents=[])
@@ -147,3 +178,77 @@ def test_format_diff_is_empty_for_an_unchanged_card() -> None:
     text = format_diff(diff_system_cards(card, card))
 
     assert text == ""
+
+
+def test_added_guardrail_is_reported_on_the_agent_it_was_added_to() -> None:
+    old = SystemCard(agents=[_agent(guardrails=[])])
+    new = SystemCard(agents=[_agent(guardrails=[_guardrail("no_secrets")])])
+
+    diff = diff_system_cards(old, new)
+
+    assert diff.agent_diffs[0].guardrail_diffs == [GuardrailDiff(name="no_secrets", change="added")]
+
+
+def test_removed_guardrail_is_reported() -> None:
+    old = SystemCard(agents=[_agent(guardrails=[_guardrail("no_secrets")])])
+    new = SystemCard(agents=[_agent(guardrails=[])])
+
+    diff = diff_system_cards(old, new)
+
+    assert diff.agent_diffs[0].guardrail_diffs == [
+        GuardrailDiff(name="no_secrets", change="removed")
+    ]
+
+
+def test_changed_guardrail_instruction_is_reported_as_changed() -> None:
+    old = SystemCard(agents=[_agent(guardrails=[_guardrail("no_secrets", "Old.")])])
+    new = SystemCard(agents=[_agent(guardrails=[_guardrail("no_secrets", "New.")])])
+
+    diff = diff_system_cards(old, new)
+
+    assert diff.agent_diffs[0].guardrail_diffs == [
+        GuardrailDiff(name="no_secrets", change="changed")
+    ]
+
+
+def test_guardrail_only_change_is_not_dropped() -> None:
+    old = SystemCard(agents=[_agent(guardrails=[])])
+    new = SystemCard(agents=[_agent(guardrails=[_guardrail("no_secrets")])])
+
+    diff = diff_system_cards(old, new)
+
+    assert len(diff.agent_diffs) == 1
+    assert diff.agent_diffs[0].change == "changed"
+    assert diff.agent_diffs[0].tool_diffs == []
+    assert diff.agent_diffs[0].instruction_changed is False
+    assert diff.agent_diffs[0].model_changed is False
+
+
+def test_a_newly_added_agents_guardrails_are_each_reported_as_added() -> None:
+    old = SystemCard(agents=[])
+    new = SystemCard(agents=[_agent(guardrails=[_guardrail("no_secrets"), _guardrail("no_pii")])])
+
+    diff = diff_system_cards(old, new)
+
+    guardrail_names = {(d.name, d.change) for d in diff.agent_diffs[0].guardrail_diffs}
+    assert guardrail_names == {("no_secrets", "added"), ("no_pii", "added")}
+
+
+def test_a_removed_agents_guardrails_are_each_reported_as_removed() -> None:
+    old = SystemCard(agents=[_agent(guardrails=[_guardrail("no_secrets")])])
+    new = SystemCard(agents=[])
+
+    diff = diff_system_cards(old, new)
+
+    assert diff.agent_diffs[0].guardrail_diffs == [
+        GuardrailDiff(name="no_secrets", change="removed")
+    ]
+
+
+def test_format_diff_renders_added_guardrail_with_a_plus_marker() -> None:
+    old = SystemCard(agents=[_agent(guardrails=[])])
+    new = SystemCard(agents=[_agent(guardrails=[_guardrail("no_secrets")])])
+
+    text = format_diff(diff_system_cards(old, new))
+
+    assert "+ added guardrail: no_secrets" in text
