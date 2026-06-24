@@ -1,6 +1,6 @@
 {
   "hash": "9150b23ce11957bce41e74425bae2a47e2f970218d8566eb3f9749a58a2a937b",
-  "generated_at": "2026-06-23T23:57:44.199700+00:00",
+  "generated_at": "2026-06-24T01:34:15.958322+00:00",
   "agents": [
     {
       "name": "ollama_agent",
@@ -258,6 +258,55 @@
       },
       "used_by": [
         "system_card_agent"
+      ]
+    }
+  ],
+  "history": [
+    {
+      "version": "v1",
+      "hash": "9150b23ce11957bce41e74425bae2a47e2f970218d8566eb3f9749a58a2a937b",
+      "diff": "+ added agent: ollama_agent\n  + added tool: ollama_list\n+ added agent: system_card_agent\n  + added tool: calculator\n  + added tool: coin_flip\n  + added tool: dad_joke\n  + added tool: shakespearify\n  + added tool: word_count",
+      "agent_diffs": [
+        {
+          "name": "ollama_agent",
+          "change": "added",
+          "tool_diffs": [
+            {
+              "name": "ollama_list",
+              "change": "added"
+            }
+          ],
+          "instruction_changed": false,
+          "model_changed": false
+        },
+        {
+          "name": "system_card_agent",
+          "change": "added",
+          "tool_diffs": [
+            {
+              "name": "calculator",
+              "change": "added"
+            },
+            {
+              "name": "coin_flip",
+              "change": "added"
+            },
+            {
+              "name": "dad_joke",
+              "change": "added"
+            },
+            {
+              "name": "shakespearify",
+              "change": "added"
+            },
+            {
+              "name": "word_count",
+              "change": "added"
+            }
+          ],
+          "instruction_changed": false,
+          "model_changed": false
+        }
       ]
     }
   ]
