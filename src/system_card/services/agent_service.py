@@ -6,7 +6,10 @@ from collections.abc import Callable
 from typing import Any
 
 from google.adk.agents import LlmAgent
+from google.adk.agents.callback_context import CallbackContext
 from google.adk.models.lite_llm import LiteLlm
+from google.adk.models.llm_request import LlmRequest
+from google.adk.models.llm_response import LlmResponse
 from google.adk.runners import InMemoryRunner
 from google.adk.tools.base_tool import BaseTool
 from google.adk.tools.base_toolset import BaseToolset
@@ -36,6 +39,65 @@ def triggered_guardrail_instructions(guardrails: list[GuardrailSpec], message: s
         for guardrail in guardrails
         if any(keyword in lowered for keyword in guardrail.trigger_keywords)
     ]
+
+
+def _latest_user_text(llm_request: LlmRequest) -> str | None:
+    """Returns the text of the most recent user-role content with a text part.
+
+    A turn that involves a tool call triggers multiple LLM calls (the initial
+    request, then another after the tool result comes back). On the later
+    calls, the most recent "user" content is the tool's function_response,
+    not text — skip those and use the last one that actually has text, so
+    the guardrail check still reflects what the human actually said.
+
+    Args:
+        llm_request: The in-flight request, with full conversation history.
+
+    Returns:
+        The latest user-authored text, or None if there isn't one.
+    """
+    latest: str | None = None
+    for content in llm_request.contents:
+        if content.role != "user":
+            continue
+        for part in content.parts or []:
+            if part.text:
+                latest = part.text
+
+    return latest
+
+
+def _build_guardrail_callback(
+    guardrails: list[GuardrailSpec],
+) -> Callable[[CallbackContext, LlmRequest], LlmResponse | None]:
+    """Builds a before_model_callback that injects triggered guardrails into the system instruction.
+
+    Wiring this onto LlmAgent itself (rather than checking guardrails in our
+    own AgentService.run()) means every caller that uses this agent through
+    ADK's normal request flow sees the same guardrail behavior — including
+    `adk web`, which has its own runner and never calls AgentService at all.
+    A side-channel only one caller knows about isn't really "the agent has
+    a guardrail," it's a workaround that happens to look like one.
+
+    Args:
+        guardrails: This agent's resolved guardrails.
+
+    Returns:
+        A callback usable as LlmAgent(before_model_callback=...).
+    """
+
+    def _callback(callback_context: CallbackContext, llm_request: LlmRequest) -> LlmResponse | None:
+        message = _latest_user_text(llm_request)
+        if message is None:
+            return None
+
+        triggered = triggered_guardrail_instructions(guardrails, message)
+        if triggered:
+            llm_request.append_instructions(triggered)
+
+        return None
+
+    return _callback
 
 
 def effective_instruction(spec: AgentSpec) -> str:
@@ -68,7 +130,10 @@ def effective_instruction(spec: AgentSpec) -> str:
 
 
 def build_agent_from_spec(
-    spec: AgentSpec, tool_registry: ToolRegistry, ollama_api_base: str
+    spec: AgentSpec,
+    tool_registry: ToolRegistry,
+    ollama_api_base: str,
+    guardrails: list[GuardrailSpec] | None = None,
 ) -> LlmAgent:
     """Builds an LlmAgent from a registered agent spec, resolving its tools by name.
 
@@ -78,6 +143,9 @@ def build_agent_from_spec(
             a separate ModelConfig per spec if different agents need
             different models — nothing here is shared global state.
         ollama_api_base: Where the local Ollama server is reachable.
+        guardrails: This agent's resolved guardrails, wired in as a real
+            before_model_callback so any caller using standard ADK request
+            flow sees the same behavior. Defaults to none.
 
     Returns:
         An LlmAgent ready to be run.
@@ -107,22 +175,23 @@ def build_agent_from_spec(
         instruction=spec.instruction,
         tools=tool_functions,
         generate_content_config=generation_config,
+        before_model_callback=_build_guardrail_callback(guardrails) if guardrails else None,
     )
 
 
 class AgentService:
     """Runs the agent against a single user message and returns its final reply."""
 
-    def __init__(self, agent: LlmAgent, guardrails: list[GuardrailSpec] | None = None) -> None:
+    def __init__(self, agent: LlmAgent) -> None:
         """Wraps an in-memory runner around the given agent.
 
         Args:
-            agent: The configured LlmAgent to run.
-            guardrails: This agent's resolved guardrails, checked against
-                every incoming message. Defaults to none.
+            agent: The configured LlmAgent to run. Any guardrails must
+                already be wired in via build_agent_from_spec's
+                before_model_callback — this class no longer applies them
+                separately.
         """
         self._runner = InMemoryRunner(agent=agent)
-        self._guardrails = guardrails or []
 
     async def run(self, message: str) -> str:
         """Sends one message to the agent and returns its final text reply.
@@ -142,10 +211,7 @@ class AgentService:
             session_id=session_id,
         )
 
-        triggered = triggered_guardrail_instructions(self._guardrails, message)
-        effective_message = "\n\n".join([*triggered, message]) if triggered else message
-
-        new_message = types.Content(role="user", parts=[types.Part(text=effective_message)])
+        new_message = types.Content(role="user", parts=[types.Part(text=message)])
 
         reply = ""
 
